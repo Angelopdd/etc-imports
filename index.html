@@ -144,8 +144,8 @@ function App() {
             <Filtros busca={busca} setBusca={setBusca} filtroEtapa={filtroEtapa} setFiltroEtapa={setFiltroEtapa} etapas={etapas} totalFiltrado={clientesFiltrados.length} isMobile={isMobile} />
             {loading ? <Loading /> : clientes.length === 0 ? (
               <EstadoVazio onAdicionar={() => { setClienteEditando(null); setModalCliente(true); }} />
-            ) : view === 'kanban' && !isMobile ? (
-              <Kanban clientes={clientesFiltrados} etapas={etapas} onEditar={c => { setClienteEditando(c); setModalCliente(true); }} onMover={moverEtapa} />
+            ) : view === 'kanban' ? (
+              <Kanban clientes={clientesFiltrados} etapas={etapas} onEditar={c => { setClienteEditando(c); setModalCliente(true); }} onMover={moverEtapa} isMobile={isMobile} />
             ) : (
               <Lista clientes={clientesFiltrados} etapas={etapas} onEditar={c => { setClienteEditando(c); setModalCliente(true); }} onMover={moverEtapa} isMobile={isMobile} />
             )}
@@ -177,14 +177,14 @@ function Header({ tela, setTela, onNovoCliente, view, setView, isMobile }) {
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <button onClick={() => setTela(tela === 'clientes' ? 'config' : 'clientes')} style={{ background: 'transparent', color: tela === 'config' ? GOLD : TEXT_MUTED, border: '1px solid ' + BORDER, padding: '8px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, minWidth: 40 }}>{tela === 'clientes' ? '⚙️' : '←'}</button>
+          {tela === 'clientes' && (
+            <div style={{ display: 'flex', background: BG_CARD, border: '1px solid ' + BORDER, borderRadius: 6, padding: 3 }}>
+              <button onClick={() => setView('kanban')} style={{ background: view === 'kanban' ? GOLD : 'transparent', color: view === 'kanban' ? '#000' : TEXT_MUTED, border: 'none', padding: isMobile ? '6px 10px' : '6px 12px', borderRadius: 4, fontSize: 12, fontWeight: 600 }}>Kanban</button>
+              <button onClick={() => setView('lista')} style={{ background: view === 'lista' ? GOLD : 'transparent', color: view === 'lista' ? '#000' : TEXT_MUTED, border: 'none', padding: isMobile ? '6px 10px' : '6px 12px', borderRadius: 4, fontSize: 12, fontWeight: 600 }}>Lista</button>
+            </div>
+          )}
           {tela === 'clientes' && !isMobile && (
-            <>
-              <div style={{ display: 'flex', background: BG_CARD, border: '1px solid ' + BORDER, borderRadius: 6, padding: 3 }}>
-                <button onClick={() => setView('kanban')} style={{ background: view === 'kanban' ? GOLD : 'transparent', color: view === 'kanban' ? '#000' : TEXT_MUTED, border: 'none', padding: '6px 12px', borderRadius: 4, fontSize: 12, fontWeight: 600 }}>Kanban</button>
-                <button onClick={() => setView('lista')} style={{ background: view === 'lista' ? GOLD : 'transparent', color: view === 'lista' ? '#000' : TEXT_MUTED, border: 'none', padding: '6px 12px', borderRadius: 4, fontSize: 12, fontWeight: 600 }}>Lista</button>
-              </div>
-              <button onClick={onNovoCliente} style={{ background: GOLD, color: '#000', border: 'none', padding: '10px 18px', borderRadius: 6, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ fontSize: 16, lineHeight: 1 }}>+</span> Nova venda</button>
-            </>
+            <button onClick={onNovoCliente} style={{ background: GOLD, color: '#000', border: 'none', padding: '10px 18px', borderRadius: 6, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ fontSize: 16, lineHeight: 1 }}>+</span> Nova venda</button>
           )}
         </div>
       </div>
@@ -224,13 +224,14 @@ function Filtros({ busca, setBusca, filtroEtapa, setFiltroEtapa, etapas, totalFi
   );
 }
 
-function Kanban({ clientes, etapas, onEditar, onMover }) {
+function Kanban({ clientes, etapas, onEditar, onMover, isMobile }) {
+  const colWidth = isMobile ? 260 : 280;
   return (
-    <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 16 }}>
+    <div style={{ display: 'flex', gap: isMobile ? 10 : 12, overflowX: 'auto', paddingBottom: 16, scrollSnapType: isMobile ? 'x mandatory' : 'none', WebkitOverflowScrolling: 'touch' }}>
       {etapas.map(etapa => {
         const ce = clientes.filter(c => c.etapa === etapa.id);
         return (
-          <div key={etapa.id} style={{ minWidth: 280, width: 280, flexShrink: 0 }}>
+          <div key={etapa.id} style={{ minWidth: colWidth, width: colWidth, flexShrink: 0, scrollSnapAlign: isMobile ? 'start' : 'none' }}>
             <div style={{ background: BG_CARD, border: '1px solid ' + BORDER, borderTop: '2px solid ' + etapa.cor, borderRadius: '8px 8px 0 0', padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontSize: 15 }}>{etapa.icone}</span>
