@@ -285,9 +285,18 @@ if (onContato) onContato(cliente);
 // Modal para escolher qual das 2 mensagens enviar
 function ModalMensagem({ cliente, etapa, onEscolher, onFechar, isMobile }) {
 useEffect(() => {
-const prev = document.body.style.overflow;
-document.body.style.overflow = 'hidden';
-return () => { document.body.style.overflow = prev; };
+const scrollY = window.scrollY;
+const b = document.body.style;
+const h = document.documentElement.style;
+const prev = { bp: b.position, bt: b.top, bw: b.width, bo: b.overflow, ho: h.overflow };
+// Trava total de rolagem de fundo no iOS (fixa o body)
+b.position = 'fixed'; b.top = (-scrollY) + 'px'; b.width = '100%';
+b.overflow = 'hidden'; h.overflow = 'hidden';
+return () => {
+b.position = prev.bp; b.top = prev.bt; b.width = prev.bw;
+b.overflow = prev.bo; h.overflow = prev.ho;
+window.scrollTo(0, scrollY);
+};
 }, []);
 const opcoes = [];
 if (etapa?.mensagem_whatsapp) opcoes.push({ label: 'Opção 1', texto: etapa.mensagem_whatsapp });
@@ -296,8 +305,8 @@ if (opcoes.length === 0) opcoes.push({ label: 'Padrão', texto: 'Olá {nome}!' }
 
 function preview(t) { return t.replace(/\{nome\}/g, cliente.nome).replace(/\{produto\}/g, cliente.produto || ''); }
 
-return (
-<div style={{ position: 'fixed', inset: 0, background: isMobile ? BG : 'rgba(0,0,0,0.85)', zIndex: 110, display: 'flex', alignItems: isMobile ? 'stretch' : 'center', justifyContent: 'center', padding: isMobile ? 0 : 20, overscrollBehavior: 'contain' }} onClick={isMobile ? undefined : onFechar}>
+return ReactDOM.createPortal(
+<div style={{ position: 'fixed', inset: 0, background: isMobile ? BG : 'rgba(0,0,0,0.85)', zIndex: 99999, display: 'flex', alignItems: isMobile ? 'stretch' : 'center', justifyContent: 'center', padding: isMobile ? 0 : 20, overscrollBehavior: 'contain', touchAction: 'none' }} onClick={isMobile ? undefined : onFechar}>
 <div onClick={e => e.stopPropagation()} style={{ background: BG_CARD, border: isMobile ? 'none' : '1px solid ' + BORDER, borderRadius: isMobile ? 0 : 12, width: '100%', maxWidth: isMobile ? '100%' : 480, height: isMobile ? '100%' : 'auto', maxHeight: isMobile ? '100%' : '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 {/* Cabeçalho fixo */}
 <div style={{ padding: isMobile ? 'calc(14px + env(safe-area-inset-top)) 16px 12px' : '20px 24px 12px', flexShrink: 0, borderBottom: '1px solid ' + BORDER }}>
@@ -308,7 +317,7 @@ return (
 <div style={{ fontSize: 12.5, color: TEXT_MUTED }}>{etapa?.icone} {etapa?.nome} — para {cliente.nome}</div>
 </div>
 {/* Área de opções com scroll vertical próprio */}
-<div style={{ flex: 1, overflowY: 'scroll', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', padding: isMobile ? '14px 16px calc(20px + env(safe-area-inset-bottom))' : '16px 24px', display: 'flex', flexDirection: 'column', gap: 14, minHeight: 0 }}>
+<div style={{ flex: 1, overflowY: 'scroll', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', touchAction: 'pan-y', padding: isMobile ? '14px 16px calc(20px + env(safe-area-inset-bottom))' : '16px 24px', display: 'flex', flexDirection: 'column', gap: 14, minHeight: 0 }}>
 {opcoes.map((op, i) => {
 const txt = preview(op.texto);
 return (
@@ -323,7 +332,7 @@ return (
 </div>
 </div>
 </div>
-);
+, document.body);
 }
 
 function Kanban({ clientes, etapas, onEditar, onMover, onContato, isMobile }) {
