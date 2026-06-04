@@ -289,7 +289,6 @@ const prev = document.body.style.overflow;
 document.body.style.overflow = 'hidden';
 return () => { document.body.style.overflow = prev; };
 }, []);
-const [expandido, setExpandido] = useState(null); // índice da opção expandida
 const opcoes = [];
 if (etapa?.mensagem_whatsapp) opcoes.push({ label: 'Opção 1', texto: etapa.mensagem_whatsapp });
 if (etapa?.mensagem_whatsapp_2) opcoes.push({ label: 'Opção 2', texto: etapa.mensagem_whatsapp_2 });
@@ -298,32 +297,29 @@ if (opcoes.length === 0) opcoes.push({ label: 'Padrão', texto: 'Olá {nome}!' }
 function preview(t) { return t.replace(/\{nome\}/g, cliente.nome).replace(/\{produto\}/g, cliente.produto || ''); }
 
 return (
-<div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 110, display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', padding: isMobile ? 0 : 20, overscrollBehavior: 'contain' }} onClick={onFechar}>
-<div onClick={e => e.stopPropagation()} style={{ background: BG_CARD, border: '1px solid ' + BORDER, borderRadius: isMobile ? '16px 16px 0 0' : 12, width: '100%', maxWidth: isMobile ? '100%' : 480, maxHeight: isMobile ? '85vh' : '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+<div style={{ position: 'fixed', inset: 0, background: isMobile ? BG : 'rgba(0,0,0,0.85)', zIndex: 110, display: 'flex', alignItems: isMobile ? 'stretch' : 'center', justifyContent: 'center', padding: isMobile ? 0 : 20, overscrollBehavior: 'contain' }} onClick={isMobile ? undefined : onFechar}>
+<div onClick={e => e.stopPropagation()} style={{ background: BG_CARD, border: isMobile ? 'none' : '1px solid ' + BORDER, borderRadius: isMobile ? 0 : 12, width: '100%', maxWidth: isMobile ? '100%' : 480, height: isMobile ? '100%' : 'auto', maxHeight: isMobile ? '100%' : '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 {/* Cabeçalho fixo */}
-<div style={{ padding: isMobile ? '16px 16px 10px' : '20px 24px 12px', flexShrink: 0, borderBottom: '1px solid ' + BORDER }}>
+<div style={{ padding: isMobile ? 'calc(14px + env(safe-area-inset-top)) 16px 12px' : '20px 24px 12px', flexShrink: 0, borderBottom: '1px solid ' + BORDER }}>
 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-<h2 style={{ fontSize: 17, fontWeight: 600, margin: 0 }}>Escolha a mensagem</h2>
-<button onClick={onFechar} style={{ background: 'transparent', border: 'none', color: TEXT_MUTED, fontSize: 26, lineHeight: 1, width: 32, height: 32 }}>×</button>
+<h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Escolha a mensagem</h2>
+<button onClick={onFechar} style={{ background: BG, border: '1px solid ' + BORDER, color: TEXT, fontSize: 22, lineHeight: 1, width: 38, height: 38, borderRadius: 8 }}>×</button>
 </div>
-<div style={{ fontSize: 12, color: TEXT_MUTED }}>{etapa?.icone} {etapa?.nome} — para {cliente.nome}</div>
+<div style={{ fontSize: 12.5, color: TEXT_MUTED }}>{etapa?.icone} {etapa?.nome} — para {cliente.nome}</div>
 </div>
-{/* Área de opções com scroll próprio garantido */}
-<div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', padding: isMobile ? '12px 16px' : '16px 24px', display: 'flex', flexDirection: 'column', gap: 12, minHeight: 0 }}>
+{/* Área de opções com scroll vertical próprio */}
+<div style={{ flex: 1, overflowY: 'scroll', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', padding: isMobile ? '14px 16px calc(20px + env(safe-area-inset-bottom))' : '16px 24px', display: 'flex', flexDirection: 'column', gap: 14, minHeight: 0 }}>
 {opcoes.map((op, i) => {
 const txt = preview(op.texto);
-const longo = txt.length > 130;
-const aberto = expandido === i;
-const mostrar = (longo && !aberto) ? txt.slice(0, 130) + '…' : txt;
 return (
-<div key={i} style={{ border: '1px solid ' + BORDER, borderRadius: 10, padding: 14, background: BG }}>
-<div style={{ fontSize: 11, color: GOLD, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>{op.label}</div>
-<div style={{ fontSize: 14, color: TEXT, lineHeight: 1.5, marginBottom: 8, whiteSpace: 'pre-wrap' }}>{mostrar}</div>
-{longo && <button onClick={() => setExpandido(aberto ? null : i)} style={{ background: 'transparent', border: 'none', color: GOLD, fontSize: 12, fontWeight: 600, padding: '0 0 10px', textAlign: 'left' }}>{aberto ? '▲ ver menos' : '▼ ver mensagem completa'}</button>}
-<button onClick={() => onEscolher(op.texto)} style={{ width: '100%', background: '#25D366', color: '#000', border: 'none', padding: '12px', borderRadius: 8, fontSize: 14, fontWeight: 700 }}>💬 Enviar esta</button>
+<div key={i} style={{ border: '1px solid ' + BORDER, borderRadius: 12, padding: 16, background: BG }}>
+<div style={{ fontSize: 12, color: GOLD, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>{op.label}</div>
+<div style={{ fontSize: 15, color: TEXT, lineHeight: 1.55, marginBottom: 14, whiteSpace: 'pre-wrap' }}>{txt}</div>
+<button onClick={() => onEscolher(op.texto)} style={{ width: '100%', background: '#25D366', color: '#000', border: 'none', padding: '14px', borderRadius: 10, fontSize: 15, fontWeight: 700 }}>💬 Enviar esta</button>
 </div>
 );
 })}
+<div style={{ height: 8, flexShrink: 0 }} />
 </div>
 </div>
 </div>
