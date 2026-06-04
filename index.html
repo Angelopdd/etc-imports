@@ -284,6 +284,11 @@ if (onContato) onContato(cliente);
 
 // Modal para escolher qual das 2 mensagens enviar
 function ModalMensagem({ cliente, etapa, onEscolher, onFechar, isMobile }) {
+useEffect(() => {
+const prev = document.body.style.overflow;
+document.body.style.overflow = 'hidden';
+return () => { document.body.style.overflow = prev; };
+}, []);
 const opcoes = [];
 if (etapa?.mensagem_whatsapp) opcoes.push({ label: 'Opção 1', texto: etapa.mensagem_whatsapp });
 if (etapa?.mensagem_whatsapp_2) opcoes.push({ label: 'Opção 2', texto: etapa.mensagem_whatsapp_2 });
@@ -292,8 +297,8 @@ if (opcoes.length === 0) opcoes.push({ label: 'Padrão', texto: 'Olá {nome}!' }
 function preview(t) { return t.replace(/\{nome\}/g, cliente.nome).replace(/\{produto\}/g, cliente.produto || ''); }
 
 return (
-<div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 110, display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', padding: isMobile ? 0 : 20 }} onClick={onFechar}>
-<div onClick={e => e.stopPropagation()} style={{ background: BG_CARD, border: '1px solid ' + BORDER, borderRadius: isMobile ? '16px 16px 0 0' : 12, padding: isMobile ? '20px 16px calc(20px + env(safe-area-inset-bottom))' : 24, width: '100%', maxWidth: isMobile ? '100%' : 480, maxHeight: '90vh', overflowY: 'auto' }}>
+<div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 110, display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', padding: isMobile ? 0 : 20, overscrollBehavior: 'contain' }} onClick={onFechar}>
+<div onClick={e => e.stopPropagation()} style={{ background: BG_CARD, border: '1px solid ' + BORDER, borderRadius: isMobile ? '16px 16px 0 0' : 12, padding: isMobile ? '18px 16px calc(18px + env(safe-area-inset-bottom))' : 24, width: '100%', maxWidth: isMobile ? '100%' : 480, maxHeight: isMobile ? '85vh' : '90vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
 <h2 style={{ fontSize: 17, fontWeight: 600, margin: 0 }}>Escolha a mensagem</h2>
 <button onClick={onFechar} style={{ background: 'transparent', border: 'none', color: TEXT_MUTED, fontSize: 26, lineHeight: 1, width: 32, height: 32 }}>×</button>
@@ -499,8 +504,8 @@ const ist = { width: '100%', background: BG, border: '1px solid ' + BORDER, bord
 const lst = { fontSize: 11, color: TEXT_MUTED, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600, marginBottom: 6, display: 'block' };
 
 return (
-<div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 100, display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', padding: isMobile ? 0 : 20 }} onClick={onFechar}>
-<div onClick={e => e.stopPropagation()} style={{ background: BG_CARD, border: '1px solid ' + BORDER, borderRadius: isMobile ? '16px 16px 0 0' : 12, padding: isMobile ? '20px 16px calc(20px + env(safe-area-inset-bottom))' : 24, width: '100%', maxWidth: isMobile ? '100%' : 520, maxHeight: isMobile ? '92vh' : '90vh', overflowY: 'auto' }}>
+<div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 100, display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', padding: isMobile ? 0 : 20, overscrollBehavior: 'contain' }} onClick={onFechar}>
+<div onClick={e => e.stopPropagation()} style={{ background: BG_CARD, border: '1px solid ' + BORDER, borderRadius: isMobile ? '16px 16px 0 0' : 12, padding: isMobile ? '20px 16px calc(20px + env(safe-area-inset-bottom))' : 24, width: '100%', maxWidth: isMobile ? '100%' : 520, maxHeight: isMobile ? '88vh' : '90vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
 <div>
 <div style={{ fontSize: 10, color: GOLD, textTransform: 'uppercase', letterSpacing: 2, fontWeight: 700, marginBottom: 4 }}>ETC IMPORTS</div>
@@ -632,8 +637,8 @@ const ist = { width: '100%', background: BG, border: '1px solid ' + BORDER, bord
 const lst = { fontSize: 11, color: TEXT_MUTED, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600, marginBottom: 6, display: 'block' };
 
 return (
-<div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 100, display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', padding: isMobile ? 0 : 20 }} onClick={onFechar}>
-<div onClick={e => e.stopPropagation()} style={{ background: BG_CARD, border: '1px solid ' + BORDER, borderRadius: isMobile ? '16px 16px 0 0' : 12, padding: isMobile ? '20px 16px calc(20px + env(safe-area-inset-bottom))' : 24, width: '100%', maxWidth: isMobile ? '100%' : 560, maxHeight: isMobile ? '92vh' : '90vh', overflowY: 'auto' }}>
+<div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 100, display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', padding: isMobile ? 0 : 20, overscrollBehavior: 'contain' }} onClick={onFechar}>
+<div onClick={e => e.stopPropagation()} style={{ background: BG_CARD, border: '1px solid ' + BORDER, borderRadius: isMobile ? '16px 16px 0 0' : 12, padding: isMobile ? '20px 16px calc(20px + env(safe-area-inset-bottom))' : 24, width: '100%', maxWidth: isMobile ? '100%' : 560, maxHeight: isMobile ? '88vh' : '90vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
 <h2 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>{criando ? 'Nova etapa' : 'Editar etapa'}</h2>
 <button onClick={onFechar} style={{ background: 'transparent', border: 'none', color: TEXT_MUTED, fontSize: 26, lineHeight: 1, width: 32, height: 32 }}>×</button>
