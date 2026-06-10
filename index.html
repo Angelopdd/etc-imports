@@ -86,43 +86,52 @@ return m;
 }
 
 // Calcula o próximo contato do cliente com base na etapa ATUAL e nas regras de prazo.
-// Regras: Petrolina conta tudo a partir da data da compra.
-// Outras cidades: a Etapa de vínculo (a 1ª com dias_apos_compra > 0) conta a partir da data de entrega
-// (precisa estar marcada como entregue); as demais contam a partir da data da compra.
-// Retorna { cor, texto, prazoISO, aguardandoEntrega } ou null.
+// Regras definidas:
+// - Etapa "Aguardando entrega": aguardando o pedido ser entregue (sem contador).
+// - Etapa "Pedido entregue": começa a contar 2 dias (do vínculo) a partir da data de entrega.
+//   A data de entrega é gravada quando a vendedora move o cliente para esta etapa.
+// - Etapa "Vínculo pós-compra": prazo de 2 dias contados a partir da data de entrega.
+// - Etapas "Prova social" (7d), "1ª venda" (14d), "2ª venda" (45d): contam a partir da DATA DA COMPRA.
+// - Etapa "Concluído": sem próximo contato.
+// Retorna { cor, texto, prazoISO } ou null.
 function calcProximoContato(cliente, etapas) {
 if (!etapas || etapas.length === 0) return null;
 const idx = etapas.findIndex(e => e.id === cliente.etapa);
 const atual = etapas[idx];
 if (!atual) return null;
 
-// Etapa final (sem dias) = concluído, sem próximo contato
-if (atual.dias_apos_compra === null || atual.dias_apos_compra === undefined) {
+// Aguardando entrega: sem contador, esperando entregar
+if (atual.id === 'aguardando_entrega') {
+return { cor: TEXT_MUTED, texto: 'Aguardando entrega', prazoISO: null };
+}
+
+// Concluído ou etapas sem prazo definido (exceto pedido_entregue tratado abaixo)
+if (atual.id === 'concluido') {
 return { cor: VERDE, texto: 'Ciclo concluído', prazoISO: null };
 }
 
-const local = ehCidadeLocal(cliente.cidade);
-
-// Identifica se a etapa atual é a etapa de vínculo (a primeira com dias > 0)
-const idxVinculo = etapas.findIndex(e => e.dias_apos_compra != null && e.dias_apos_compra > 0);
-const ehVinculo = idx === idxVinculo;
-
-// Base de contagem
-let base, prazoISO;
-if (!local && ehVinculo) {
-// Fora de Petrolina + etapa de vínculo: depende da entrega
+// "Pedido entregue" e "Vínculo": contam 2 dias a partir da data de entrega
+if (atual.id === 'pedido_entregue' || atual.id === 'vinculo') {
+const diasVinculo = 2;
 if (!cliente.data_entrega) {
-return { cor: TEXT_MUTED, texto: 'Aguardando entrega', prazoISO: null, aguardandoEntrega: true };
+// Ainda não há data de entrega registrada
+return { cor: TEXT_MUTED, texto: 'Marque a entrega para iniciar', prazoISO: null };
 }
-base = cliente.data_entrega;
-prazoISO = addDias(base, atual.dias_apos_compra); // ex: 2 dias após entrega
-} else {
-// Petrolina (qualquer etapa) ou fora nas etapas 2/3/4: conta da data da compra
-base = cliente.data_compra;
-if (!base) return null;
-prazoISO = addDias(base, atual.dias_apos_compra);
+const prazoISO = addDias(cliente.data_entrega, diasVinculo);
+const d = diasEntre(prazoISO);
+const nome = 'Vínculo';
+if (d < 0) return { cor: VERMELHO, texto: nome + ' · atrasado ' + Math.abs(d) + 'd', prazoISO };
+if (d === 0) return { cor: LARANJA, texto: nome + ' · contatar HOJE', prazoISO };
+return { cor: GOLD, texto: nome + ' · em ' + d + 'd', prazoISO };
 }
 
+// Demais etapas (prova social, vendas): contam a partir da data da compra
+if (atual.dias_apos_compra === null || atual.dias_apos_compra === undefined) {
+return { cor: VERDE, texto: 'Sem prazo', prazoISO: null };
+}
+const base = cliente.data_compra;
+if (!base) return null;
+const prazoISO = addDias(base, atual.dias_apos_compra);
 const d = diasEntre(prazoISO);
 if (d === null) return null;
 const nome = atual.nome;
@@ -173,8 +182,14 @@ setClienteEditando(null);
 }
 
 async function moverEtapa(cliente, novaEtapa) {
-setClientes(p => p.map(c => c.id === cliente.id ? { ...c, etapa: novaEtapa } : c));
-try { await api('clientes_posvenda', 'PATCH', '?id=eq.' + cliente.id, { etapa: novaEtapa, updated_at: new Date().toISOString() }); }
+const patch = { etapa: novaEtapa, updated_at: new Date().toISOString() };
+// Ao entrar em "Pedido entregue", registra a data de entrega (início da contagem do vínculo),
+// caso ainda não tenha sido registrada.
+if (novaEtapa === 'pedido_entregue' && !cliente.data_entrega) {
+patch.data_entrega = todayISO();
+}
+setClientes(p => p.map(c => c.id === cliente.id ? { ...c, ...patch } : c));
+try { await api('clientes_posvenda', 'PATCH', '?id=eq.' + cliente.id, patch); }
 catch (e) { alert('Erro: ' + e.message); await carregar(); }
 }
 
@@ -360,6 +375,31 @@ return (
 , document.body);
 }
 
+// Ícone "i" com explicação da etapa. Passa o mouse (desktop) ou toca (mobile) para ver.
+function InfoEtapa({ texto, cor }) {
+const [aberto, setAberto] = useState(false);
+useEffect(() => {
+if (!aberto) return;
+function fora() { setAberto(false); }
+const t = setTimeout(() => { document.addEventListener('click', fora); document.addEventListener('touchstart', fora); }, 50);
+return () => { clearTimeout(t); document.removeEventListener('click', fora); document.removeEventListener('touchstart', fora); };
+}, [aberto]);
+if (!texto) return null;
+return (
+<span style={{ position: 'relative', display: 'inline-flex', verticalAlign: 'middle' }}
+onMouseEnter={() => setAberto(true)} onMouseLeave={() => setAberto(false)}>
+<button onClick={(e) => { e.stopPropagation(); e.preventDefault(); setAberto(v => !v); }}
+style={{ width: 17, height: 17, borderRadius: '50%', border: '1px solid ' + (cor || TEXT_MUTED), background: 'transparent', color: cor || TEXT_MUTED, fontSize: 11, fontWeight: 700, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, fontStyle: 'italic', fontFamily: 'Georgia, serif' }}>i</button>
+{aberto && (
+<span style={{ position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', width: 230, maxWidth: '72vw', background: BG_2, border: '1px solid ' + BORDER, borderRadius: 10, padding: '10px 12px', zIndex: 9999, fontSize: 12.5, lineHeight: 1.5, color: TEXT, fontWeight: 400, textAlign: 'left', boxShadow: '0 4px 16px rgba(0,0,0,0.5)', whiteSpace: 'normal' }}>
+{texto}
+<span style={{ position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)', width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '6px solid ' + BORDER }} />
+</span>
+)}
+</span>
+);
+}
+
 function Kanban({ clientes, etapas, onEditar, onMover, onContato, onToggleEntregue, isMobile }) {
 const colWidth = isMobile ? 270 : 290;
 return (
@@ -372,6 +412,7 @@ return (
 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 <span style={{ fontSize: 15 }}>{etapa.icone}</span>
 <span style={{ fontSize: 13, fontWeight: 600 }}>{etapa.nome}</span>
+<InfoEtapa texto={etapa.objetivo} cor={etapa.cor} />
 </div>
 <span style={{ background: BG, color: TEXT_MUTED, padding: '2px 8px', borderRadius: 10, fontSize: 11, fontWeight: 600 }}>{ce.length}</span>
 </div>
@@ -393,7 +434,6 @@ const prox = etapas[idx + 1];
 const ant = etapas[idx - 1];
 const prazo = calcProximoContato(cliente, etapas);
 const local = ehCidadeLocal(cliente.cidade);
-const entregue = !!cliente.data_entrega;
 
 return (
 <div style={{ background: BG_CARD, border: '1px solid ' + BORDER, borderRadius: 8, padding: 12, position: 'relative' }}>
@@ -427,14 +467,6 @@ return (
 </div>
 </div>
 
-{/* CAIXINHA "PEDIDO ENTREGUE" */}
-<label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, cursor: 'pointer', background: entregue ? VERDE + '18' : BG, border: '1px solid ' + (entregue ? VERDE + '55' : BORDER), borderRadius: 8, padding: '7px 10px' }}>
-<span onClick={(e) => { e.preventDefault(); onToggleEntregue(cliente); }} style={{ width: 20, height: 20, borderRadius: 5, border: '2px solid ' + (entregue ? VERDE : TEXT_MUTED), background: entregue ? VERDE : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 13, color: '#000', fontWeight: 900 }}>{entregue ? '✓' : ''}</span>
-<span onClick={(e) => { e.preventDefault(); onToggleEntregue(cliente); }} style={{ fontSize: 12, color: entregue ? VERDE : TEXT_MUTED, fontWeight: 600 }}>
-{entregue ? 'Pedido entregue em ' + formatDate(cliente.data_entrega) : 'Marcar pedido como entregue'}
-</span>
-</label>
-
 {cliente.observacoes && <div style={{ fontSize: 11.5, color: TEXT_MUTED, fontStyle: 'italic', marginBottom: 8, lineHeight: 1.4, borderLeft: '2px solid ' + BORDER, paddingLeft: 8 }}>{cliente.observacoes}</div>}
 <div style={{ display: 'flex', gap: 5, marginTop: 8 }}>
 {ant && <button onClick={() => onMover(cliente, ant.id)} style={{ background: 'transparent', color: TEXT_MUTED, border: '1px solid ' + BORDER, padding: '8px 9px', borderRadius: 5, fontSize: 13, fontWeight: 700 }} title={'Voltar: ' + ant.nome}>←</button>}
@@ -463,6 +495,7 @@ return (
 <span style={{ fontSize: 14 }}>{g.etapa.icone}</span>
 <span style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8, color: g.etapa.cor }}>{g.etapa.nome}</span>
 <span style={{ background: g.etapa.cor + '22', color: g.etapa.cor, padding: '2px 8px', borderRadius: 10, fontSize: 11, fontWeight: 700 }}>{g.clientes.length}</span>
+<InfoEtapa texto={g.etapa.objetivo} cor={g.etapa.cor} />
 </div>
 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 {g.clientes.map(c => <CardCliente key={c.id} cliente={c} etapas={etapas} onEditar={onEditar} onMover={onMover} onContato={onContato} onToggleEntregue={onToggleEntregue} showEtapa={false} />)}
@@ -482,6 +515,7 @@ return (
 <span style={{ fontSize: 16 }}>{g.etapa.icone}</span>
 <span style={{ fontSize: 14, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8, color: g.etapa.cor }}>{g.etapa.nome}</span>
 <span style={{ background: g.etapa.cor + '22', color: g.etapa.cor, padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 700 }}>{g.clientes.length}</span>
+<InfoEtapa texto={g.etapa.objetivo} cor={g.etapa.cor} />
 </div>
 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 {g.clientes.map(c => <CardCliente key={c.id} cliente={c} etapas={etapas} onEditar={onEditar} onMover={onMover} onContato={onContato} onToggleEntregue={onToggleEntregue} showEtapa={false} />)}
