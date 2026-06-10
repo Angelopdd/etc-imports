@@ -580,6 +580,9 @@ return (
 <div><label style={lst}>Valor da compra (R$)</label><input type="number" step="0.01" style={ist} value={form.valor_compra} onChange={e => setForm({ ...form, valor_compra: e.target.value })} placeholder="0,00" /></div>
 <div><label style={lst}>Data compra</label><input type="date" style={ist} value={form.data_compra} onChange={e => setForm({ ...form, data_compra: e.target.value })} /></div>
 </div>
+{!local && (
+<div><label style={lst}>Previsão de entrega {form.cidade ? '(cidade de fora)' : ''}</label><input type="date" style={ist} value={form.previsao_entrega} onChange={e => setForm({ ...form, previsao_entrega: e.target.value })} /><div style={{ fontSize: 11, color: TEXT_MUTED, marginTop: 4, lineHeight: 1.4 }}>Opcional — uma estimativa de quando o pedido deve chegar. O contato de vínculo só começa quando você marcar "Pedido entregue".</div></div>
+)}
 <div><label style={lst}>Etapa atual</label><select style={ist} value={form.etapa} onChange={e => setForm({ ...form, etapa: e.target.value })}>{etapas.map(et => <option key={et.id} value={et.id}>{et.icone} {et.nome}</option>)}</select></div>
 <div><label style={lst}>Observações da atendente</label><textarea style={{ ...ist, minHeight: 70, resize: 'vertical' }} value={form.observacoes} onChange={e => setForm({ ...form, observacoes: e.target.value })} placeholder="Anote preferências, respostas do cliente, etc." /></div>
 </div>
