@@ -162,7 +162,7 @@ async function carregar() {
 try {
 const [ets, cls] = await Promise.all([
 api('etapas', 'GET', '?order=ordem.asc&ativa=eq.true'),
-api('clientes_posvenda', 'GET', '?order=created_at.desc'),
+api('clientes_posvenda', 'GET', '?order=updated_at.desc.nullslast'),
 ]);
 setEtapas(ets || []);
 setClientes(cls || []);
