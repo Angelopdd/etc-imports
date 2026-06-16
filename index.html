@@ -22,18 +22,30 @@ button { cursor: pointer; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #2A2A2A; border-radius: 4px; }
 </style>
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel" data-presets="react">
-const { useState, useEffect, useMemo } = React;
-
+<script>
+(function(){
+  function mostrarErro(msg){
+    var r=document.getElementById("root");
+    if(r) r.innerHTML='<div style="padding:40px 20px;text-align:center;color:#F5F5F5;font-family:-apple-system,sans-serif"><div style="font-size:40px;margin-bottom:16px">⚠️</div><div style="font-size:16px;font-weight:600;margin-bottom:8px">Não foi possível carregar</div><div style="font-size:13px;color:#9A9A9A;line-height:1.5;max-width:300px;margin:0 auto">Verifique sua conexão com a internet e recarregue a página. Se continuar, feche e abra o app novamente.</div><button onclick="location.reload()" style="margin-top:20px;background:#C9A24A;color:#000;border:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:700">Recarregar</button></div>';
+  }
+  if(typeof React==="undefined"||typeof ReactDOM==="undefined"){
+    mostrarErro();
+  }
+})();
+</script>
+<script>
+const {
+  useState,
+  useEffect,
+  useMemo
+} = React;
 const SUPABASE_URL = 'https://bkpkcfdqymwpnnulfhcs.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_NMow0Dy6d3vSUsHbSM-G6Q_nX5tYVhm';
-
 const GOLD = '#C9A24A';
 const BG = '#0A0A0A';
 const BG_2 = '#111111';
@@ -45,44 +57,99 @@ const TEXT_DIM = '#666666';
 const VERDE = '#97C459';
 const VERMELHO = '#E24B4A';
 const LARANJA = '#EF9F27';
-
-const ICONES = ['🆕','📋','🚚','✅','💬','🎯','⭐','📦','💰','🎁','👑','📞','💎','🔔','📅','🚀','💼','📝','🏆','💡','🎉','⚡','🔥','✨','🤝','📸','🛍️'];
-const CORES = [
-{ nome: 'Azul', valor: '#5B8DEF' },{ nome: 'Laranja', valor: '#EF9F27' },{ nome: 'Roxo', valor: '#A57DD4' },
-{ nome: 'Verde claro', valor: '#5DCAA5' },{ nome: 'Dourado', valor: '#C9A24A' },{ nome: 'Rosa', valor: '#D4537E' },
-{ nome: 'Verde', valor: '#97C459' },{ nome: 'Vermelho', valor: '#E24B4A' },{ nome: 'Ciano', valor: '#4DD0E1' },{ nome: 'Cinza', valor: '#888888' },
-];
+const ICONES = ['🆕', '📋', '🚚', '✅', '💬', '🎯', '⭐', '📦', '💰', '🎁', '👑', '📞', '💎', '🔔', '📅', '🚀', '💼', '📝', '🏆', '💡', '🎉', '⚡', '🔥', '✨', '🤝', '📸', '🛍️'];
+const CORES = [{
+  nome: 'Azul',
+  valor: '#5B8DEF'
+}, {
+  nome: 'Laranja',
+  valor: '#EF9F27'
+}, {
+  nome: 'Roxo',
+  valor: '#A57DD4'
+}, {
+  nome: 'Verde claro',
+  valor: '#5DCAA5'
+}, {
+  nome: 'Dourado',
+  valor: '#C9A24A'
+}, {
+  nome: 'Rosa',
+  valor: '#D4537E'
+}, {
+  nome: 'Verde',
+  valor: '#97C459'
+}, {
+  nome: 'Vermelho',
+  valor: '#E24B4A'
+}, {
+  nome: 'Ciano',
+  valor: '#4DD0E1'
+}, {
+  nome: 'Cinza',
+  valor: '#888888'
+}];
 
 // Cidade local = Petrolina. Contagem das etapas conta a partir da data da compra.
 // Outras cidades: a Etapa 01 (vínculo) só começa a contar após marcar "Pedido entregue".
 const CIDADES_LOCAIS = ['petrolina'];
 function ehCidadeLocal(cidade) {
-if (!cidade) return false;
-const c = cidade.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-return CIDADES_LOCAIS.some(loc => c.includes(loc));
+  if (!cidade) return false;
+  const c = cidade.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  return CIDADES_LOCAIS.some(loc => c.includes(loc));
 }
-
-const headers = { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'return=representation' };
-
+const headers = {
+  apikey: SUPABASE_KEY,
+  Authorization: 'Bearer ' + SUPABASE_KEY,
+  'Content-Type': 'application/json',
+  Prefer: 'return=representation'
+};
 async function api(table, method, path, body) {
-const res = await fetch(SUPABASE_URL + '/rest/v1/' + table + (path || ''), { method, headers, body: body ? JSON.stringify(body) : undefined });
-if (!res.ok) throw new Error(await res.text());
-if (method === 'DELETE' || res.status === 204) return null;
-const t = await res.text();
-return t ? JSON.parse(t) : null;
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + table + (path || ''), {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if (!res.ok) throw new Error(await res.text());
+  if (method === 'DELETE' || res.status === 204) return null;
+  const t = await res.text();
+  return t ? JSON.parse(t) : null;
 }
-
-function formatDate(iso) { if (!iso) return '—'; const [y, m, d] = iso.split('-'); return d + '/' + m + '/' + y.slice(2); }
-function todayISO() { return new Date().toISOString().split('T')[0]; }
-function addDias(iso, n) { const d = new Date(iso); d.setDate(d.getDate() + n); return d.toISOString().split('T')[0]; }
-function diasEntre(iso) { if (!iso) return null; return Math.round((new Date(iso) - new Date(todayISO())) / 86400000); }
-function diasDesde(iso) { if (!iso) return null; return Math.round((new Date(todayISO()) - new Date(iso)) / 86400000); }
-function fmtMoeda(v) { if (v === null || v === undefined || v === '') return '—'; return 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }); }
-
+function formatDate(iso) {
+  if (!iso) return '—';
+  const [y, m, d] = iso.split('-');
+  return d + '/' + m + '/' + y.slice(2);
+}
+function todayISO() {
+  return new Date().toISOString().split('T')[0];
+}
+function addDias(iso, n) {
+  const d = new Date(iso);
+  d.setDate(d.getDate() + n);
+  return d.toISOString().split('T')[0];
+}
+function diasEntre(iso) {
+  if (!iso) return null;
+  return Math.round((new Date(iso) - new Date(todayISO())) / 86400000);
+}
+function diasDesde(iso) {
+  if (!iso) return null;
+  return Math.round((new Date(todayISO()) - new Date(iso)) / 86400000);
+}
+function fmtMoeda(v) {
+  if (v === null || v === undefined || v === '') return '—';
+  return 'R$ ' + Number(v).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2
+  });
+}
 function useIsMobile() {
-const [m, setM] = useState(typeof window !== 'undefined' && window.innerWidth <= 640);
-useEffect(() => { const h = () => setM(window.innerWidth <= 640); window.addEventListener('resize', h); return () => window.removeEventListener('resize', h); }, []);
-return m;
+  const [m, setM] = useState(typeof window !== 'undefined' && window.innerWidth <= 640);
+  useEffect(() => {
+    const h = () => setM(window.innerWidth <= 640);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
+  return m;
 }
 
 // Calcula o próximo contato do cliente com base na etapa ATUAL e nas regras de prazo.
@@ -95,657 +162,2123 @@ return m;
 // - Etapa "Concluído": sem próximo contato.
 // Retorna { cor, texto, prazoISO } ou null.
 function calcProximoContato(cliente, etapas) {
-if (!etapas || etapas.length === 0) return null;
-const idx = etapas.findIndex(e => e.id === cliente.etapa);
-const atual = etapas[idx];
-if (!atual) return null;
+  if (!etapas || etapas.length === 0) return null;
+  const idx = etapas.findIndex(e => e.id === cliente.etapa);
+  const atual = etapas[idx];
+  if (!atual) return null;
 
-// Aguardando entrega: sem contador, esperando entregar
-if (atual.id === 'aguardando_entrega') {
-return { cor: TEXT_MUTED, texto: 'Aguardando entrega', prazoISO: null };
-}
+  // Aguardando entrega: sem contador, esperando entregar
+  if (atual.id === 'aguardando_entrega') {
+    return {
+      cor: TEXT_MUTED,
+      texto: 'Aguardando entrega',
+      prazoISO: null
+    };
+  }
 
-// Concluído ou etapas sem prazo definido (exceto pedido_entregue tratado abaixo)
-if (atual.id === 'concluido') {
-return { cor: VERDE, texto: 'Ciclo concluído', prazoISO: null };
-}
+  // Concluído ou etapas sem prazo definido (exceto pedido_entregue tratado abaixo)
+  if (atual.id === 'concluido') {
+    return {
+      cor: VERDE,
+      texto: 'Ciclo concluído',
+      prazoISO: null
+    };
+  }
 
-// "Pedido entregue" e "Vínculo": contam 2 dias a partir da data de entrega
-if (atual.id === 'pedido_entregue' || atual.id === 'vinculo') {
-const diasVinculo = 2;
-if (!cliente.data_entrega) {
-// Ainda não há data de entrega registrada
-return { cor: TEXT_MUTED, texto: 'Marque a entrega para iniciar', prazoISO: null };
-}
-const prazoISO = addDias(cliente.data_entrega, diasVinculo);
-const d = diasEntre(prazoISO);
-const nome = 'Vínculo';
-if (d < 0) return { cor: VERMELHO, texto: nome + ' · atrasado ' + Math.abs(d) + 'd', prazoISO };
-if (d === 0) return { cor: LARANJA, texto: nome + ' · contatar HOJE', prazoISO };
-return { cor: GOLD, texto: nome + ' · em ' + d + 'd', prazoISO };
-}
+  // "Pedido entregue" e "Vínculo": contam 2 dias a partir da data de entrega
+  if (atual.id === 'pedido_entregue' || atual.id === 'vinculo') {
+    const diasVinculo = 2;
+    if (!cliente.data_entrega) {
+      // Ainda não há data de entrega registrada
+      return {
+        cor: TEXT_MUTED,
+        texto: 'Marque a entrega para iniciar',
+        prazoISO: null
+      };
+    }
+    const prazoISO = addDias(cliente.data_entrega, diasVinculo);
+    const d = diasEntre(prazoISO);
+    const nome = 'Vínculo';
+    if (d < 0) return {
+      cor: VERMELHO,
+      texto: nome + ' · atrasado ' + Math.abs(d) + 'd',
+      prazoISO
+    };
+    if (d === 0) return {
+      cor: LARANJA,
+      texto: nome + ' · contatar HOJE',
+      prazoISO
+    };
+    return {
+      cor: GOLD,
+      texto: nome + ' · em ' + d + 'd',
+      prazoISO
+    };
+  }
 
-// Demais etapas (prova social, vendas): contam a partir da data da compra
-if (atual.dias_apos_compra === null || atual.dias_apos_compra === undefined) {
-return { cor: VERDE, texto: 'Sem prazo', prazoISO: null };
+  // Demais etapas (prova social, vendas): contam a partir da data da compra
+  if (atual.dias_apos_compra === null || atual.dias_apos_compra === undefined) {
+    return {
+      cor: VERDE,
+      texto: 'Sem prazo',
+      prazoISO: null
+    };
+  }
+  const base = cliente.data_compra;
+  if (!base) return null;
+  const prazoISO = addDias(base, atual.dias_apos_compra);
+  const d = diasEntre(prazoISO);
+  if (d === null) return null;
+  const nome = atual.nome;
+  if (d < 0) return {
+    cor: VERMELHO,
+    texto: nome + ' · atrasado ' + Math.abs(d) + 'd',
+    prazoISO
+  };
+  if (d === 0) return {
+    cor: LARANJA,
+    texto: nome + ' · contatar HOJE',
+    prazoISO
+  };
+  return {
+    cor: GOLD,
+    texto: nome + ' · em ' + d + 'd',
+    prazoISO
+  };
 }
-const base = cliente.data_compra;
-if (!base) return null;
-const prazoISO = addDias(base, atual.dias_apos_compra);
-const d = diasEntre(prazoISO);
-if (d === null) return null;
-const nome = atual.nome;
-if (d < 0) return { cor: VERMELHO, texto: nome + ' · atrasado ' + Math.abs(d) + 'd', prazoISO };
-if (d === 0) return { cor: LARANJA, texto: nome + ' · contatar HOJE', prazoISO };
-return { cor: GOLD, texto: nome + ' · em ' + d + 'd', prazoISO };
-}
-
 function App() {
-const [clientes, setClientes] = useState([]);
-const [etapas, setEtapas] = useState([]);
-const [loading, setLoading] = useState(true);
-const [modalCliente, setModalCliente] = useState(null);
-const [clienteEditando, setClienteEditando] = useState(null);
-const [busca, setBusca] = useState('');
-const [filtroEtapa, setFiltroEtapa] = useState('todos');
-const [view, setView] = useState('kanban');
-const [tela, setTela] = useState('clientes');
-const isMobile = useIsMobile();
+  const [clientes, setClientes] = useState([]);
+  const [etapas, setEtapas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [modalCliente, setModalCliente] = useState(null);
+  const [clienteEditando, setClienteEditando] = useState(null);
+  const [busca, setBusca] = useState('');
+  const [filtroEtapa, setFiltroEtapa] = useState('todos');
+  const [view, setView] = useState('kanban');
+  const [tela, setTela] = useState('clientes');
+  const isMobile = useIsMobile();
+  useEffect(() => {
+    carregar();
+    const i = setInterval(carregar, 15000);
+    return () => clearInterval(i);
+  }, []);
+  async function carregar() {
+    try {
+      const [ets, cls] = await Promise.all([api('etapas', 'GET', '?order=ordem.asc&ativa=eq.true'), api('clientes_posvenda', 'GET', '?order=updated_at.desc.nullslast')]);
+      setEtapas(ets || []);
+      setClientes(cls || []);
+      setLoading(false);
+    } catch (e) {
+      console.error(e);
+      setLoading(false);
+    }
+  }
+  async function salvarCliente(dados) {
+    try {
+      if (dados._delete) {
+        await api('clientes_posvenda', 'DELETE', '?id=eq.' + dados.id);
+      } else if (dados.id) {
+        const {
+          id,
+          created_at,
+          _delete,
+          ...r
+        } = dados;
+        await api('clientes_posvenda', 'PATCH', '?id=eq.' + id, {
+          ...r,
+          updated_at: new Date().toISOString()
+        });
+      } else {
+        await api('clientes_posvenda', 'POST', '', dados);
+      }
+      await carregar();
+      setModalCliente(null);
+      setClienteEditando(null);
+    } catch (e) {
+      alert('Erro: ' + e.message);
+    }
+  }
+  async function moverEtapa(cliente, novaEtapa) {
+    const patch = {
+      etapa: novaEtapa,
+      updated_at: new Date().toISOString()
+    };
+    // Ao entrar em "Pedido entregue", registra a data de entrega (início da contagem do vínculo),
+    // caso ainda não tenha sido registrada.
+    if (novaEtapa === 'pedido_entregue' && !cliente.data_entrega) {
+      patch.data_entrega = todayISO();
+    }
+    setClientes(p => p.map(c => c.id === cliente.id ? {
+      ...c,
+      ...patch
+    } : c));
+    try {
+      await api('clientes_posvenda', 'PATCH', '?id=eq.' + cliente.id, patch);
+    } catch (e) {
+      alert('Erro: ' + e.message);
+      await carregar();
+    }
+  }
 
-useEffect(() => {
-carregar();
-const i = setInterval(carregar, 15000);
-return () => clearInterval(i);
-}, []);
+  // Marca/desmarca "pedido entregue". Guarda a data em que foi marcado (base do contador para fora de Petrolina).
+  async function toggleEntregue(cliente) {
+    const novaData = cliente.data_entrega ? null : todayISO();
+    setClientes(p => p.map(c => c.id === cliente.id ? {
+      ...c,
+      data_entrega: novaData
+    } : c));
+    try {
+      await api('clientes_posvenda', 'PATCH', '?id=eq.' + cliente.id, {
+        data_entrega: novaData,
+        updated_at: new Date().toISOString()
+      });
+    } catch (e) {
+      alert('Erro: ' + e.message);
+      await carregar();
+    }
+  }
 
-async function carregar() {
-try {
-const [ets, cls] = await Promise.all([
-api('etapas', 'GET', '?order=ordem.asc&ativa=eq.true'),
-api('clientes_posvenda', 'GET', '?order=updated_at.desc.nullslast'),
-]);
-setEtapas(ets || []);
-setClientes(cls || []);
-setLoading(false);
-} catch (e) { console.error(e); setLoading(false); }
+  // Registra a data de último contato ao enviar WhatsApp
+  async function registrarContato(cliente) {
+    const hoje = todayISO();
+    setClientes(p => p.map(c => c.id === cliente.id ? {
+      ...c,
+      ultimo_contato: hoje
+    } : c));
+    try {
+      await api('clientes_posvenda', 'PATCH', '?id=eq.' + cliente.id, {
+        ultimo_contato: hoje,
+        updated_at: new Date().toISOString()
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  const clientesFiltrados = useMemo(() => clientes.filter(c => {
+    const b = busca.toLowerCase();
+    const mb = !busca || c.nome.toLowerCase().includes(b) || (c.whatsapp || '').includes(busca) || (c.produto || '').toLowerCase().includes(b) || (c.cidade || '').toLowerCase().includes(b);
+    const me = filtroEtapa === 'todos' || c.etapa === filtroEtapa;
+    return mb && me;
+  }), [clientes, busca, filtroEtapa]);
+  const metricas = useMemo(() => {
+    const finalId = etapas[etapas.length - 1]?.id;
+    return {
+      total: clientes.length,
+      contatar: clientes.filter(c => {
+        const p = calcProximoContato(c, etapas);
+        return p && (p.cor === VERMELHO || p.cor === LARANJA) && c.etapa !== finalId;
+      }).length,
+      local: clientes.filter(c => ehCidadeLocal(c.cidade)).length,
+      concluidos: clientes.filter(c => c.etapa === finalId).length
+    };
+  }, [clientes, etapas]);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: '100vh',
+      background: BG
+    }
+  }, /*#__PURE__*/React.createElement(Header, {
+    tela: tela,
+    setTela: setTela,
+    onNovoCliente: () => {
+      setClienteEditando(null);
+      setModalCliente(true);
+    },
+    view: view,
+    setView: setView,
+    isMobile: isMobile
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 1400,
+      margin: '0 auto',
+      padding: isMobile ? '0 12px 80px' : '0 20px 40px'
+    }
+  }, tela === 'clientes' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Metricas, {
+    metricas: metricas,
+    isMobile: isMobile
+  }), /*#__PURE__*/React.createElement(Filtros, {
+    busca: busca,
+    setBusca: setBusca,
+    filtroEtapa: filtroEtapa,
+    setFiltroEtapa: setFiltroEtapa,
+    etapas: etapas,
+    totalFiltrado: clientesFiltrados.length,
+    isMobile: isMobile
+  }), loading ? /*#__PURE__*/React.createElement(Loading, null) : clientes.length === 0 ? /*#__PURE__*/React.createElement(EstadoVazio, {
+    onAdicionar: () => {
+      setClienteEditando(null);
+      setModalCliente(true);
+    }
+  }) : view === 'kanban' ? /*#__PURE__*/React.createElement(Kanban, {
+    clientes: clientesFiltrados,
+    etapas: etapas,
+    onEditar: c => {
+      setClienteEditando(c);
+      setModalCliente(true);
+    },
+    onMover: moverEtapa,
+    onContato: registrarContato,
+    onToggleEntregue: toggleEntregue,
+    isMobile: isMobile
+  }) : /*#__PURE__*/React.createElement(Lista, {
+    clientes: clientesFiltrados,
+    etapas: etapas,
+    onEditar: c => {
+      setClienteEditando(c);
+      setModalCliente(true);
+    },
+    onMover: moverEtapa,
+    onContato: registrarContato,
+    onToggleEntregue: toggleEntregue,
+    isMobile: isMobile
+  })) : /*#__PURE__*/React.createElement(TelaConfig, {
+    etapas: etapas,
+    onAtualizar: carregar,
+    isMobile: isMobile
+  })), modalCliente && /*#__PURE__*/React.createElement(ModalCliente, {
+    cliente: clienteEditando,
+    etapas: etapas,
+    onSalvar: salvarCliente,
+    onFechar: () => {
+      setModalCliente(null);
+      setClienteEditando(null);
+    },
+    isMobile: isMobile
+  }), isMobile && tela === 'clientes' && /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setClienteEditando(null);
+      setModalCliente(true);
+    },
+    style: {
+      position: 'fixed',
+      bottom: 'calc(20px + env(safe-area-inset-bottom))',
+      right: 20,
+      width: 56,
+      height: 56,
+      borderRadius: '50%',
+      background: GOLD,
+      color: '#000',
+      border: 'none',
+      fontSize: 28,
+      fontWeight: 700,
+      boxShadow: '0 4px 20px rgba(201,162,74,0.4)',
+      zIndex: 40,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
+  }, "+"));
 }
-
-async function salvarCliente(dados) {
-try {
-if (dados._delete) { await api('clientes_posvenda', 'DELETE', '?id=eq.' + dados.id); }
-else if (dados.id) { const { id, created_at, _delete, ...r } = dados; await api('clientes_posvenda', 'PATCH', '?id=eq.' + id, { ...r, updated_at: new Date().toISOString() }); }
-else { await api('clientes_posvenda', 'POST', '', dados); }
-await carregar();
-setModalCliente(null);
-setClienteEditando(null);
-} catch (e) { alert('Erro: ' + e.message); }
+function Header({
+  tela,
+  setTela,
+  onNovoCliente,
+  view,
+  setView,
+  isMobile
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      borderBottom: '1px solid ' + BORDER,
+      background: BG,
+      position: 'sticky',
+      top: 0,
+      zIndex: 50,
+      paddingTop: 'env(safe-area-inset-top)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 1400,
+      margin: '0 auto',
+      padding: isMobile ? '14px 12px' : '18px 20px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12,
+      flex: isMobile ? 1 : 'initial',
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 38,
+      height: 38,
+      border: '1.5px solid ' + GOLD,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 4,
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: GOLD,
+      fontWeight: 800,
+      fontSize: 13,
+      letterSpacing: 1
+    }
+  }, "ETC")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: isMobile ? 14 : 15,
+      fontWeight: 600,
+      letterSpacing: 0.3
+    }
+  }, "ETC IMPORTS"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: TEXT_MUTED,
+      letterSpacing: 1.5,
+      textTransform: 'uppercase'
+    }
+  }, tela === 'clientes' ? 'Pós-venda' : 'Configurações'))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      alignItems: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setTela(tela === 'clientes' ? 'config' : 'clientes'),
+    style: {
+      background: 'transparent',
+      color: tela === 'config' ? GOLD : TEXT_MUTED,
+      border: '1px solid ' + BORDER,
+      padding: '8px 12px',
+      borderRadius: 6,
+      fontSize: 13,
+      fontWeight: 600,
+      minWidth: 40
+    }
+  }, tela === 'clientes' ? '⚙️' : '←'), tela === 'clientes' && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      background: BG_CARD,
+      border: '1px solid ' + BORDER,
+      borderRadius: 6,
+      padding: 3
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setView('kanban'),
+    style: {
+      background: view === 'kanban' ? GOLD : 'transparent',
+      color: view === 'kanban' ? '#000' : TEXT_MUTED,
+      border: 'none',
+      padding: isMobile ? '6px 10px' : '6px 12px',
+      borderRadius: 4,
+      fontSize: 12,
+      fontWeight: 600
+    }
+  }, "Kanban"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setView('lista'),
+    style: {
+      background: view === 'lista' ? GOLD : 'transparent',
+      color: view === 'lista' ? '#000' : TEXT_MUTED,
+      border: 'none',
+      padding: isMobile ? '6px 10px' : '6px 12px',
+      borderRadius: 4,
+      fontSize: 12,
+      fontWeight: 600
+    }
+  }, "Lista")), tela === 'clientes' && !isMobile && /*#__PURE__*/React.createElement("button", {
+    onClick: onNovoCliente,
+    style: {
+      background: GOLD,
+      color: '#000',
+      border: 'none',
+      padding: '10px 18px',
+      borderRadius: 6,
+      fontSize: 13,
+      fontWeight: 700,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 16,
+      lineHeight: 1
+    }
+  }, "+"), " Nova venda"))));
 }
-
-async function moverEtapa(cliente, novaEtapa) {
-const patch = { etapa: novaEtapa, updated_at: new Date().toISOString() };
-// Ao entrar em "Pedido entregue", registra a data de entrega (início da contagem do vínculo),
-// caso ainda não tenha sido registrada.
-if (novaEtapa === 'pedido_entregue' && !cliente.data_entrega) {
-patch.data_entrega = todayISO();
+function Metricas({
+  metricas,
+  isMobile
+}) {
+  const cards = [{
+    label: 'Total',
+    valor: metricas.total,
+    cor: GOLD
+  }, {
+    label: 'Contatar agora',
+    valor: metricas.contatar,
+    cor: VERMELHO
+  }, {
+    label: 'Clientes locais',
+    valor: metricas.local,
+    cor: '#5B8DEF'
+  }, {
+    label: 'Concluídos',
+    valor: metricas.concluidos,
+    cor: VERDE
+  }];
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(160px, 1fr))',
+      gap: isMobile ? 8 : 12,
+      marginTop: isMobile ? 16 : 24,
+      marginBottom: isMobile ? 16 : 24
+    }
+  }, cards.map(c => /*#__PURE__*/React.createElement("div", {
+    key: c.label,
+    style: {
+      background: BG_CARD,
+      border: '1px solid ' + BORDER,
+      borderRadius: 10,
+      padding: isMobile ? '12px 14px' : '16px 18px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: TEXT_MUTED,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+      marginBottom: 4
+    }
+  }, c.label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: isMobile ? 22 : 26,
+      fontWeight: 700,
+      color: c.cor
+    }
+  }, c.valor))));
 }
-setClientes(p => p.map(c => c.id === cliente.id ? { ...c, ...patch } : c));
-try { await api('clientes_posvenda', 'PATCH', '?id=eq.' + cliente.id, patch); }
-catch (e) { alert('Erro: ' + e.message); await carregar(); }
-}
-
-// Marca/desmarca "pedido entregue". Guarda a data em que foi marcado (base do contador para fora de Petrolina).
-async function toggleEntregue(cliente) {
-const novaData = cliente.data_entrega ? null : todayISO();
-setClientes(p => p.map(c => c.id === cliente.id ? { ...c, data_entrega: novaData } : c));
-try { await api('clientes_posvenda', 'PATCH', '?id=eq.' + cliente.id, { data_entrega: novaData, updated_at: new Date().toISOString() }); }
-catch (e) { alert('Erro: ' + e.message); await carregar(); }
-}
-
-// Registra a data de último contato ao enviar WhatsApp
-async function registrarContato(cliente) {
-const hoje = todayISO();
-setClientes(p => p.map(c => c.id === cliente.id ? { ...c, ultimo_contato: hoje } : c));
-try { await api('clientes_posvenda', 'PATCH', '?id=eq.' + cliente.id, { ultimo_contato: hoje, updated_at: new Date().toISOString() }); }
-catch (e) { console.error(e); }
-}
-
-const clientesFiltrados = useMemo(() => clientes.filter(c => {
-const b = busca.toLowerCase();
-const mb = !busca || c.nome.toLowerCase().includes(b) || (c.whatsapp || '').includes(busca) || (c.produto || '').toLowerCase().includes(b) || (c.cidade || '').toLowerCase().includes(b);
-const me = filtroEtapa === 'todos' || c.etapa === filtroEtapa;
-return mb && me;
-}), [clientes, busca, filtroEtapa]);
-
-const metricas = useMemo(() => {
-const finalId = etapas[etapas.length - 1]?.id;
-return {
-total: clientes.length,
-contatar: clientes.filter(c => { const p = calcProximoContato(c, etapas); return p && (p.cor === VERMELHO || p.cor === LARANJA) && c.etapa !== finalId; }).length,
-local: clientes.filter(c => ehCidadeLocal(c.cidade)).length,
-concluidos: clientes.filter(c => c.etapa === finalId).length,
-};
-}, [clientes, etapas]);
-
-return (
-<div style={{ minHeight: '100vh', background: BG }}>
-<Header tela={tela} setTela={setTela} onNovoCliente={() => { setClienteEditando(null); setModalCliente(true); }} view={view} setView={setView} isMobile={isMobile} />
-<div style={{ maxWidth: 1400, margin: '0 auto', padding: isMobile ? '0 12px 80px' : '0 20px 40px' }}>
-{tela === 'clientes' ? (
-<>
-<Metricas metricas={metricas} isMobile={isMobile} />
-<Filtros busca={busca} setBusca={setBusca} filtroEtapa={filtroEtapa} setFiltroEtapa={setFiltroEtapa} etapas={etapas} totalFiltrado={clientesFiltrados.length} isMobile={isMobile} />
-{loading ? <Loading /> : clientes.length === 0 ? (
-<EstadoVazio onAdicionar={() => { setClienteEditando(null); setModalCliente(true); }} />
-) : view === 'kanban' ? (
-<Kanban clientes={clientesFiltrados} etapas={etapas} onEditar={c => { setClienteEditando(c); setModalCliente(true); }} onMover={moverEtapa} onContato={registrarContato} onToggleEntregue={toggleEntregue} isMobile={isMobile} />
-) : (
-<Lista clientes={clientesFiltrados} etapas={etapas} onEditar={c => { setClienteEditando(c); setModalCliente(true); }} onMover={moverEtapa} onContato={registrarContato} onToggleEntregue={toggleEntregue} isMobile={isMobile} />
-)}
-</>
-) : (
-<TelaConfig etapas={etapas} onAtualizar={carregar} isMobile={isMobile} />
-)}
-</div>
-{modalCliente && <ModalCliente cliente={clienteEditando} etapas={etapas} onSalvar={salvarCliente} onFechar={() => { setModalCliente(null); setClienteEditando(null); }} isMobile={isMobile} />}
-{isMobile && tela === 'clientes' && (
-<button onClick={() => { setClienteEditando(null); setModalCliente(true); }} style={{ position: 'fixed', bottom: 'calc(20px + env(safe-area-inset-bottom))', right: 20, width: 56, height: 56, borderRadius: '50%', background: GOLD, color: '#000', border: 'none', fontSize: 28, fontWeight: 700, boxShadow: '0 4px 20px rgba(201,162,74,0.4)', zIndex: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
-)}
-</div>
-);
-}
-
-function Header({ tela, setTela, onNovoCliente, view, setView, isMobile }) {
-return (
-<div style={{ borderBottom: '1px solid ' + BORDER, background: BG, position: 'sticky', top: 0, zIndex: 50, paddingTop: 'env(safe-area-inset-top)' }}>
-<div style={{ maxWidth: 1400, margin: '0 auto', padding: isMobile ? '14px 12px' : '18px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-<div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: isMobile ? 1 : 'initial', minWidth: 0 }}>
-<div style={{ width: 38, height: 38, border: '1.5px solid ' + GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 4, flexShrink: 0 }}>
-<span style={{ color: GOLD, fontWeight: 800, fontSize: 13, letterSpacing: 1 }}>ETC</span>
-</div>
-<div style={{ minWidth: 0 }}>
-<div style={{ fontSize: isMobile ? 14 : 15, fontWeight: 600, letterSpacing: 0.3 }}>ETC IMPORTS</div>
-<div style={{ fontSize: 10, color: TEXT_MUTED, letterSpacing: 1.5, textTransform: 'uppercase' }}>{tela === 'clientes' ? 'Pós-venda' : 'Configurações'}</div>
-</div>
-</div>
-<div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-<button onClick={() => setTela(tela === 'clientes' ? 'config' : 'clientes')} style={{ background: 'transparent', color: tela === 'config' ? GOLD : TEXT_MUTED, border: '1px solid ' + BORDER, padding: '8px 12px', borderRadius: 6, fontSize: 13, fontWeight: 600, minWidth: 40 }}>{tela === 'clientes' ? '⚙️' : '←'}</button>
-{tela === 'clientes' && (
-<div style={{ display: 'flex', background: BG_CARD, border: '1px solid ' + BORDER, borderRadius: 6, padding: 3 }}>
-<button onClick={() => setView('kanban')} style={{ background: view === 'kanban' ? GOLD : 'transparent', color: view === 'kanban' ? '#000' : TEXT_MUTED, border: 'none', padding: isMobile ? '6px 10px' : '6px 12px', borderRadius: 4, fontSize: 12, fontWeight: 600 }}>Kanban</button>
-<button onClick={() => setView('lista')} style={{ background: view === 'lista' ? GOLD : 'transparent', color: view === 'lista' ? '#000' : TEXT_MUTED, border: 'none', padding: isMobile ? '6px 10px' : '6px 12px', borderRadius: 4, fontSize: 12, fontWeight: 600 }}>Lista</button>
-</div>
-)}
-{tela === 'clientes' && !isMobile && (
-<button onClick={onNovoCliente} style={{ background: GOLD, color: '#000', border: 'none', padding: '10px 18px', borderRadius: 6, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ fontSize: 16, lineHeight: 1 }}>+</span> Nova venda</button>
-)}
-</div>
-</div>
-</div>
-);
-}
-
-function Metricas({ metricas, isMobile }) {
-const cards = [
-{ label: 'Total', valor: metricas.total, cor: GOLD },
-{ label: 'Contatar agora', valor: metricas.contatar, cor: VERMELHO },
-{ label: 'Clientes locais', valor: metricas.local, cor: '#5B8DEF' },
-{ label: 'Concluídos', valor: metricas.concluidos, cor: VERDE },
-];
-return (
-<div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(160px, 1fr))', gap: isMobile ? 8 : 12, marginTop: isMobile ? 16 : 24, marginBottom: isMobile ? 16 : 24 }}>
-{cards.map(c => (
-<div key={c.label} style={{ background: BG_CARD, border: '1px solid ' + BORDER, borderRadius: 10, padding: isMobile ? '12px 14px' : '16px 18px' }}>
-<div style={{ fontSize: 10, color: TEXT_MUTED, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>{c.label}</div>
-<div style={{ fontSize: isMobile ? 22 : 26, fontWeight: 700, color: c.cor }}>{c.valor}</div>
-</div>
-))}
-</div>
-);
-}
-
-function Filtros({ busca, setBusca, filtroEtapa, setFiltroEtapa, etapas, totalFiltrado, isMobile }) {
-return (
-<div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-<input type="text" inputMode="search" placeholder="Buscar cliente, cidade..." value={busca} onChange={e => setBusca(e.target.value)} style={{ flex: 1, minWidth: isMobile ? '100%' : 200, background: BG_CARD, border: '1px solid ' + BORDER, borderRadius: 8, padding: '11px 14px', color: TEXT, fontSize: 14 }} />
-<select value={filtroEtapa} onChange={e => setFiltroEtapa(e.target.value)} style={{ background: BG_CARD, border: '1px solid ' + BORDER, borderRadius: 8, padding: '11px 14px', color: TEXT, fontSize: 13, flex: isMobile ? 1 : 'initial', minWidth: 140 }}>
-<option value="todos">Todas etapas</option>
-{etapas.map(e => <option key={e.id} value={e.id}>{e.icone} {e.nome}</option>)}
-</select>
-{!isMobile && <div style={{ fontSize: 12, color: TEXT_MUTED, whiteSpace: 'nowrap' }}>{totalFiltrado} {totalFiltrado === 1 ? 'cliente' : 'clientes'}</div>}
-</div>
-);
+function Filtros({
+  busca,
+  setBusca,
+  filtroEtapa,
+  setFiltroEtapa,
+  etapas,
+  totalFiltrado,
+  isMobile
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      marginBottom: 16,
+      flexWrap: 'wrap',
+      alignItems: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    inputMode: "search",
+    placeholder: "Buscar cliente, cidade...",
+    value: busca,
+    onChange: e => setBusca(e.target.value),
+    style: {
+      flex: 1,
+      minWidth: isMobile ? '100%' : 200,
+      background: BG_CARD,
+      border: '1px solid ' + BORDER,
+      borderRadius: 8,
+      padding: '11px 14px',
+      color: TEXT,
+      fontSize: 14
+    }
+  }), /*#__PURE__*/React.createElement("select", {
+    value: filtroEtapa,
+    onChange: e => setFiltroEtapa(e.target.value),
+    style: {
+      background: BG_CARD,
+      border: '1px solid ' + BORDER,
+      borderRadius: 8,
+      padding: '11px 14px',
+      color: TEXT,
+      fontSize: 13,
+      flex: isMobile ? 1 : 'initial',
+      minWidth: 140
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "todos"
+  }, "Todas etapas"), etapas.map(e => /*#__PURE__*/React.createElement("option", {
+    key: e.id,
+    value: e.id
+  }, e.icone, " ", e.nome))), !isMobile && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: TEXT_MUTED,
+      whiteSpace: 'nowrap'
+    }
+  }, totalFiltrado, " ", totalFiltrado === 1 ? 'cliente' : 'clientes'));
 }
 
 // Abre WhatsApp com a mensagem escolhida, aplicando variáveis
 function abrirWhatsapp(cliente, template, onContato) {
-const n = (cliente.whatsapp || '').replace(/\D/g, '');
-const nc = n.startsWith('55') ? n : '55' + n;
-const msg = (template || 'Olá {nome}!').replace(/\{nome\}/g, cliente.nome).replace(/\{produto\}/g, cliente.produto || '');
-window.open('https://wa.me/' + nc + '?text=' + encodeURIComponent(msg), '_blank');
-if (onContato) onContato(cliente);
+  const n = (cliente.whatsapp || '').replace(/\D/g, '');
+  const nc = n.startsWith('55') ? n : '55' + n;
+  const msg = (template || 'Olá {nome}!').replace(/\{nome\}/g, cliente.nome).replace(/\{produto\}/g, cliente.produto || '');
+  window.open('https://wa.me/' + nc + '?text=' + encodeURIComponent(msg), '_blank');
+  if (onContato) onContato(cliente);
 }
 
 // Modal para escolher qual das 2 mensagens enviar
-function ModalMensagem({ cliente, etapa, onEscolher, onFechar, isMobile }) {
-useEffect(() => {
-const scrollY = window.scrollY;
-const b = document.body.style;
-const h = document.documentElement.style;
-const prev = { bp: b.position, bt: b.top, bw: b.width, bo: b.overflow, ho: h.overflow };
-b.position = 'fixed'; b.top = (-scrollY) + 'px'; b.width = '100%';
-b.overflow = 'hidden'; h.overflow = 'hidden';
-return () => {
-b.position = prev.bp; b.top = prev.bt; b.width = prev.bw;
-b.overflow = prev.bo; h.overflow = prev.ho;
-window.scrollTo(0, scrollY);
-};
-}, []);
-const opcoes = [];
-if (etapa?.mensagem_whatsapp) opcoes.push({ label: 'Opção 1', texto: etapa.mensagem_whatsapp });
-if (etapa?.mensagem_whatsapp_2) opcoes.push({ label: 'Opção 2', texto: etapa.mensagem_whatsapp_2 });
-if (opcoes.length === 0) opcoes.push({ label: 'Padrão', texto: 'Olá {nome}!' });
-
-function preview(t) { return t.replace(/\{nome\}/g, cliente.nome).replace(/\{produto\}/g, cliente.produto || ''); }
-
-return ReactDOM.createPortal(
-<div style={{ position: 'fixed', inset: 0, background: isMobile ? BG : 'rgba(0,0,0,0.85)', zIndex: 99999, display: 'flex', alignItems: isMobile ? 'stretch' : 'center', justifyContent: 'center', padding: isMobile ? 0 : 20, overscrollBehavior: 'contain', touchAction: 'none' }} onClick={isMobile ? undefined : onFechar}>
-<div onClick={e => e.stopPropagation()} style={{ background: BG_CARD, border: isMobile ? 'none' : '1px solid ' + BORDER, borderRadius: isMobile ? 0 : 12, width: '100%', maxWidth: isMobile ? '100%' : 480, height: isMobile ? '100%' : 'auto', maxHeight: isMobile ? '100%' : '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-<div style={{ padding: isMobile ? 'calc(14px + env(safe-area-inset-top)) 16px 12px' : '20px 24px 12px', flexShrink: 0, borderBottom: '1px solid ' + BORDER }}>
-<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-<h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Escolha a mensagem</h2>
-<button onClick={onFechar} style={{ background: BG, border: '1px solid ' + BORDER, color: TEXT, fontSize: 22, lineHeight: 1, width: 38, height: 38, borderRadius: 8 }}>×</button>
-</div>
-<div style={{ fontSize: 12.5, color: TEXT_MUTED }}>{etapa?.icone} {etapa?.nome} — para {cliente.nome}</div>
-</div>
-<div style={{ flex: 1, overflowY: 'scroll', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', touchAction: 'pan-y', padding: isMobile ? '14px 16px calc(20px + env(safe-area-inset-bottom))' : '16px 24px', display: 'flex', flexDirection: 'column', gap: 14, minHeight: 0 }}>
-{opcoes.map((op, i) => {
-const txt = preview(op.texto);
-return (
-<div key={i} style={{ border: '1px solid ' + BORDER, borderRadius: 12, padding: 16, background: BG }}>
-<div style={{ fontSize: 12, color: GOLD, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>{op.label}</div>
-<div style={{ fontSize: 15, color: TEXT, lineHeight: 1.55, marginBottom: 14, whiteSpace: 'pre-wrap' }}>{txt}</div>
-<button onClick={() => onEscolher(op.texto)} style={{ width: '100%', background: '#25D366', color: '#000', border: 'none', padding: '14px', borderRadius: 10, fontSize: 15, fontWeight: 700 }}>💬 Enviar esta</button>
-</div>
-);
-})}
-<div style={{ height: 8, flexShrink: 0 }} />
-</div>
-</div>
-</div>
-, document.body);
+function ModalMensagem({
+  cliente,
+  etapa,
+  onEscolher,
+  onFechar,
+  isMobile
+}) {
+  useEffect(() => {
+    const scrollY = window.scrollY;
+    const b = document.body.style;
+    const h = document.documentElement.style;
+    const prev = {
+      bp: b.position,
+      bt: b.top,
+      bw: b.width,
+      bo: b.overflow,
+      ho: h.overflow
+    };
+    b.position = 'fixed';
+    b.top = -scrollY + 'px';
+    b.width = '100%';
+    b.overflow = 'hidden';
+    h.overflow = 'hidden';
+    return () => {
+      b.position = prev.bp;
+      b.top = prev.bt;
+      b.width = prev.bw;
+      b.overflow = prev.bo;
+      h.overflow = prev.ho;
+      window.scrollTo(0, scrollY);
+    };
+  }, []);
+  const opcoes = [];
+  if (etapa?.mensagem_whatsapp) opcoes.push({
+    label: 'Opção 1',
+    texto: etapa.mensagem_whatsapp
+  });
+  if (etapa?.mensagem_whatsapp_2) opcoes.push({
+    label: 'Opção 2',
+    texto: etapa.mensagem_whatsapp_2
+  });
+  if (opcoes.length === 0) opcoes.push({
+    label: 'Padrão',
+    texto: 'Olá {nome}!'
+  });
+  function preview(t) {
+    return t.replace(/\{nome\}/g, cliente.nome).replace(/\{produto\}/g, cliente.produto || '');
+  }
+  return ReactDOM.createPortal(/*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      background: isMobile ? BG : 'rgba(0,0,0,0.85)',
+      zIndex: 99999,
+      display: 'flex',
+      alignItems: isMobile ? 'stretch' : 'center',
+      justifyContent: 'center',
+      padding: isMobile ? 0 : 20,
+      overscrollBehavior: 'contain',
+      touchAction: 'none'
+    },
+    onClick: isMobile ? undefined : onFechar
+  }, /*#__PURE__*/React.createElement("div", {
+    onClick: e => e.stopPropagation(),
+    style: {
+      background: BG_CARD,
+      border: isMobile ? 'none' : '1px solid ' + BORDER,
+      borderRadius: isMobile ? 0 : 12,
+      width: '100%',
+      maxWidth: isMobile ? '100%' : 480,
+      height: isMobile ? '100%' : 'auto',
+      maxHeight: isMobile ? '100%' : '90vh',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: isMobile ? 'calc(14px + env(safe-area-inset-top)) 16px 12px' : '20px 24px 12px',
+      flexShrink: 0,
+      borderBottom: '1px solid ' + BORDER
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 4
+    }
+  }, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontSize: 18,
+      fontWeight: 700,
+      margin: 0
+    }
+  }, "Escolha a mensagem"), /*#__PURE__*/React.createElement("button", {
+    onClick: onFechar,
+    style: {
+      background: BG,
+      border: '1px solid ' + BORDER,
+      color: TEXT,
+      fontSize: 22,
+      lineHeight: 1,
+      width: 38,
+      height: 38,
+      borderRadius: 8
+    }
+  }, "\xD7")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: TEXT_MUTED
+    }
+  }, etapa?.icone, " ", etapa?.nome, " \u2014 para ", cliente.nome)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      overflowY: 'scroll',
+      WebkitOverflowScrolling: 'touch',
+      overscrollBehavior: 'contain',
+      touchAction: 'pan-y',
+      padding: isMobile ? '14px 16px calc(20px + env(safe-area-inset-bottom))' : '16px 24px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 14,
+      minHeight: 0
+    }
+  }, opcoes.map((op, i) => {
+    const txt = preview(op.texto);
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        border: '1px solid ' + BORDER,
+        borderRadius: 12,
+        padding: 16,
+        background: BG
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        color: GOLD,
+        fontWeight: 700,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        marginBottom: 10
+      }
+    }, op.label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 15,
+        color: TEXT,
+        lineHeight: 1.55,
+        marginBottom: 14,
+        whiteSpace: 'pre-wrap'
+      }
+    }, txt), /*#__PURE__*/React.createElement("button", {
+      onClick: () => onEscolher(op.texto),
+      style: {
+        width: '100%',
+        background: '#25D366',
+        color: '#000',
+        border: 'none',
+        padding: '14px',
+        borderRadius: 10,
+        fontSize: 15,
+        fontWeight: 700
+      }
+    }, "\uD83D\uDCAC Enviar esta"));
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 8,
+      flexShrink: 0
+    }
+  })))), document.body);
 }
 
 // Ícone "i" com explicação da etapa. Passa o mouse (desktop) ou toca (mobile) para ver.
-function InfoEtapa({ texto, cor }) {
-const [aberto, setAberto] = useState(false);
-useEffect(() => {
-if (!aberto) return;
-function fora() { setAberto(false); }
-const t = setTimeout(() => { document.addEventListener('click', fora); document.addEventListener('touchstart', fora); }, 50);
-return () => { clearTimeout(t); document.removeEventListener('click', fora); document.removeEventListener('touchstart', fora); };
-}, [aberto]);
-if (!texto) return null;
-return (
-<span style={{ position: 'relative', display: 'inline-flex', verticalAlign: 'middle' }}
-onMouseEnter={() => setAberto(true)} onMouseLeave={() => setAberto(false)}>
-<button onClick={(e) => { e.stopPropagation(); e.preventDefault(); setAberto(v => !v); }}
-style={{ width: 17, height: 17, borderRadius: '50%', border: '1px solid ' + (cor || TEXT_MUTED), background: 'transparent', color: cor || TEXT_MUTED, fontSize: 11, fontWeight: 700, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, fontStyle: 'italic', fontFamily: 'Georgia, serif' }}>i</button>
-{aberto && (
-<span style={{ position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', width: 230, maxWidth: '72vw', background: BG_2, border: '1px solid ' + BORDER, borderRadius: 10, padding: '10px 12px', zIndex: 9999, fontSize: 12.5, lineHeight: 1.5, color: TEXT, fontWeight: 400, textAlign: 'left', boxShadow: '0 4px 16px rgba(0,0,0,0.5)', whiteSpace: 'normal' }}>
-{texto}
-<span style={{ position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)', width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '6px solid ' + BORDER }} />
-</span>
-)}
-</span>
-);
+function InfoEtapa({
+  texto,
+  cor
+}) {
+  const [aberto, setAberto] = useState(false);
+  useEffect(() => {
+    if (!aberto) return;
+    function fora() {
+      setAberto(false);
+    }
+    const t = setTimeout(() => {
+      document.addEventListener('click', fora);
+      document.addEventListener('touchstart', fora);
+    }, 50);
+    return () => {
+      clearTimeout(t);
+      document.removeEventListener('click', fora);
+      document.removeEventListener('touchstart', fora);
+    };
+  }, [aberto]);
+  if (!texto) return null;
+  return /*#__PURE__*/React.createElement("span", {
+    style: {
+      position: 'relative',
+      display: 'inline-flex',
+      verticalAlign: 'middle'
+    },
+    onMouseEnter: () => setAberto(true),
+    onMouseLeave: () => setAberto(false)
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: e => {
+      e.stopPropagation();
+      e.preventDefault();
+      setAberto(v => !v);
+    },
+    style: {
+      width: 17,
+      height: 17,
+      borderRadius: '50%',
+      border: '1px solid ' + (cor || TEXT_MUTED),
+      background: 'transparent',
+      color: cor || TEXT_MUTED,
+      fontSize: 11,
+      fontWeight: 700,
+      lineHeight: 1,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 0,
+      fontStyle: 'italic',
+      fontFamily: 'Georgia, serif'
+    }
+  }, "i"), aberto && /*#__PURE__*/React.createElement("span", {
+    style: {
+      position: 'absolute',
+      top: 'calc(100% + 8px)',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      width: 230,
+      maxWidth: '72vw',
+      background: BG_2,
+      border: '1px solid ' + BORDER,
+      borderRadius: 10,
+      padding: '10px 12px',
+      zIndex: 9999,
+      fontSize: 12.5,
+      lineHeight: 1.5,
+      color: TEXT,
+      fontWeight: 400,
+      textAlign: 'left',
+      boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+      whiteSpace: 'normal'
+    }
+  }, texto, /*#__PURE__*/React.createElement("span", {
+    style: {
+      position: 'absolute',
+      bottom: '100%',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      width: 0,
+      height: 0,
+      borderLeft: '6px solid transparent',
+      borderRight: '6px solid transparent',
+      borderBottom: '6px solid ' + BORDER
+    }
+  })));
 }
-
-function Kanban({ clientes, etapas, onEditar, onMover, onContato, onToggleEntregue, isMobile }) {
-const colWidth = isMobile ? 270 : 290;
-return (
-<div style={{ display: 'flex', gap: isMobile ? 10 : 12, overflowX: 'auto', paddingBottom: 16, scrollSnapType: isMobile ? 'x mandatory' : 'none', WebkitOverflowScrolling: 'touch' }}>
-{etapas.map(etapa => {
-const ce = clientes.filter(c => c.etapa === etapa.id);
-return (
-<div key={etapa.id} style={{ minWidth: colWidth, width: colWidth, flexShrink: 0, scrollSnapAlign: isMobile ? 'start' : 'none' }}>
-<div style={{ background: BG_CARD, border: '1px solid ' + BORDER, borderTop: '2px solid ' + etapa.cor, borderRadius: '8px 8px 0 0', padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-<span style={{ fontSize: 15 }}>{etapa.icone}</span>
-<span style={{ fontSize: 13, fontWeight: 600 }}>{etapa.nome}</span>
-<InfoEtapa texto={etapa.objetivo} cor={etapa.cor} />
-</div>
-<span style={{ background: BG, color: TEXT_MUTED, padding: '2px 8px', borderRadius: 10, fontSize: 11, fontWeight: 600 }}>{ce.length}</span>
-</div>
-<div style={{ background: BG_2, border: '1px solid ' + BORDER, borderTop: 'none', borderRadius: '0 0 8px 8px', padding: 8, minHeight: 200, display: 'flex', flexDirection: 'column', gap: 8 }}>
-{ce.length === 0 ? <div style={{ padding: '20px 12px', textAlign: 'center', color: TEXT_DIM, fontSize: 12 }}>Vazio</div> : ce.map(c => <CardCliente key={c.id} cliente={c} etapas={etapas} onEditar={onEditar} onMover={onMover} onContato={onContato} onToggleEntregue={onToggleEntregue} />)}
-</div>
-</div>
-);
-})}
-</div>
-);
+function Kanban({
+  clientes,
+  etapas,
+  onEditar,
+  onMover,
+  onContato,
+  onToggleEntregue,
+  isMobile
+}) {
+  const colWidth = isMobile ? 270 : 290;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: isMobile ? 10 : 12,
+      overflowX: 'auto',
+      paddingBottom: 16,
+      scrollSnapType: isMobile ? 'x mandatory' : 'none',
+      WebkitOverflowScrolling: 'touch'
+    }
+  }, etapas.map(etapa => {
+    const ce = clientes.filter(c => c.etapa === etapa.id);
+    return /*#__PURE__*/React.createElement("div", {
+      key: etapa.id,
+      style: {
+        minWidth: colWidth,
+        width: colWidth,
+        flexShrink: 0,
+        scrollSnapAlign: isMobile ? 'start' : 'none'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: BG_CARD,
+        border: '1px solid ' + BORDER,
+        borderTop: '2px solid ' + etapa.cor,
+        borderRadius: '8px 8px 0 0',
+        padding: '12px 14px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 15
+      }
+    }, etapa.icone), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 13,
+        fontWeight: 600
+      }
+    }, etapa.nome), /*#__PURE__*/React.createElement(InfoEtapa, {
+      texto: etapa.objetivo,
+      cor: etapa.cor
+    })), /*#__PURE__*/React.createElement("span", {
+      style: {
+        background: BG,
+        color: TEXT_MUTED,
+        padding: '2px 8px',
+        borderRadius: 10,
+        fontSize: 11,
+        fontWeight: 600
+      }
+    }, ce.length)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: BG_2,
+        border: '1px solid ' + BORDER,
+        borderTop: 'none',
+        borderRadius: '0 0 8px 8px',
+        padding: 8,
+        minHeight: 200,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8
+      }
+    }, ce.length === 0 ? /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '20px 12px',
+        textAlign: 'center',
+        color: TEXT_DIM,
+        fontSize: 12
+      }
+    }, "Vazio") : ce.map(c => /*#__PURE__*/React.createElement(CardCliente, {
+      key: c.id,
+      cliente: c,
+      etapas: etapas,
+      onEditar: onEditar,
+      onMover: onMover,
+      onContato: onContato,
+      onToggleEntregue: onToggleEntregue
+    }))));
+  }));
 }
-
-function CardCliente({ cliente, etapas, onEditar, onMover, onContato, onToggleEntregue, showEtapa }) {
-const [modalMsg, setModalMsg] = useState(false);
-const idx = etapas.findIndex(e => e.id === cliente.etapa);
-const atual = etapas[idx];
-const prox = etapas[idx + 1];
-const ant = etapas[idx - 1];
-const prazo = calcProximoContato(cliente, etapas);
-const local = ehCidadeLocal(cliente.cidade);
-
-return (
-<div style={{ background: BG_CARD, border: '1px solid ' + BORDER, borderRadius: 8, padding: 12, position: 'relative' }}>
-{prazo && prazo.cor && <div style={{ position: 'absolute', top: -1, left: -1, right: -1, height: 3, background: prazo.cor, borderRadius: '8px 8px 0 0' }} />}
-{showEtapa && atual && (
-<div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: atual.cor + '22', color: atual.cor, padding: '3px 9px', borderRadius: 12, fontSize: 11, fontWeight: 700, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.3 }}>
-<span style={{ fontSize: 13 }}>{atual.icone}</span> {atual.nome}
-</div>
-)}
-<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6, gap: 8 }}>
-<div style={{ fontWeight: 700, fontSize: 14.5, lineHeight: 1.3, flex: 1, wordBreak: 'break-word' }}>{cliente.nome}</div>
-<button onClick={() => onEditar(cliente)} style={{ background: 'transparent', border: 'none', color: TEXT_MUTED, fontSize: 14, padding: 2, flexShrink: 0 }}>✎</button>
-</div>
-
-{/* LEMBRETE NÍTIDO de próximo contato */}
-{prazo && prazo.texto && (
-<div style={{ display: 'flex', alignItems: 'center', gap: 6, background: prazo.cor + '1A', border: '1px solid ' + prazo.cor + '55', color: prazo.cor, padding: '7px 10px', borderRadius: 8, fontSize: 12.5, fontWeight: 700, marginBottom: 8 }}>
-<span style={{ fontSize: 14 }}>⏰</span> {prazo.texto}
-</div>
-)}
-
-<div style={{ fontSize: 12, color: TEXT_MUTED, marginBottom: 8, lineHeight: 1.6 }}>
-<div style={{ wordBreak: 'break-word', color: TEXT }}>{cliente.produto}</div>
-<div style={{ marginTop: 3, display: 'flex', flexWrap: 'wrap', gap: '2px 10px' }}>
-<span>📍 {cliente.cidade || '—'}{local ? ' (local)' : ''}</span>
-<span>💰 {fmtMoeda(cliente.valor_compra)}</span>
-</div>
-<div style={{ marginTop: 2, display: 'flex', flexWrap: 'wrap', gap: '2px 10px' }}>
-<span>🛒 {formatDate(cliente.data_compra)}</span>
-{cliente.ultimo_contato && <span>💬 últ. {formatDate(cliente.ultimo_contato)}</span>}
-</div>
-</div>
-
-{cliente.observacoes && <div style={{ fontSize: 11.5, color: TEXT_MUTED, fontStyle: 'italic', marginBottom: 8, lineHeight: 1.4, borderLeft: '2px solid ' + BORDER, paddingLeft: 8 }}>{cliente.observacoes}</div>}
-<div style={{ display: 'flex', gap: 5, marginTop: 8 }}>
-{ant && <button onClick={() => onMover(cliente, ant.id)} style={{ background: 'transparent', color: TEXT_MUTED, border: '1px solid ' + BORDER, padding: '8px 9px', borderRadius: 5, fontSize: 13, fontWeight: 700 }} title={'Voltar: ' + ant.nome}>←</button>}
-<button onClick={() => setModalMsg(true)} style={{ flex: 1, background: '#25D366', color: '#000', border: 'none', padding: '8px 0', borderRadius: 5, fontSize: 12, fontWeight: 700 }}>💬 WhatsApp</button>
-{prox && <button onClick={() => onMover(cliente, prox.id)} style={{ background: GOLD, color: '#000', border: 'none', padding: '8px 10px', borderRadius: 5, fontSize: 13, fontWeight: 700 }} title={'Avançar: ' + prox.nome}>→</button>}
-</div>
-{modalMsg && <ModalMensagem cliente={cliente} etapa={atual} isMobile={window.innerWidth <= 640} onEscolher={(t) => { setModalMsg(false); abrirWhatsapp(cliente, t, onContato); }} onFechar={() => setModalMsg(false)} />}
-</div>
-);
+function CardCliente({
+  cliente,
+  etapas,
+  onEditar,
+  onMover,
+  onContato,
+  onToggleEntregue,
+  showEtapa
+}) {
+  const [modalMsg, setModalMsg] = useState(false);
+  const idx = etapas.findIndex(e => e.id === cliente.etapa);
+  const atual = etapas[idx];
+  const prox = etapas[idx + 1];
+  const ant = etapas[idx - 1];
+  const prazo = calcProximoContato(cliente, etapas);
+  const local = ehCidadeLocal(cliente.cidade);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: BG_CARD,
+      border: '1px solid ' + BORDER,
+      borderRadius: 8,
+      padding: 12,
+      position: 'relative'
+    }
+  }, prazo && prazo.cor && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      top: -1,
+      left: -1,
+      right: -1,
+      height: 3,
+      background: prazo.cor,
+      borderRadius: '8px 8px 0 0'
+    }
+  }), showEtapa && atual && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 5,
+      background: atual.cor + '22',
+      color: atual.cor,
+      padding: '3px 9px',
+      borderRadius: 12,
+      fontSize: 11,
+      fontWeight: 700,
+      marginBottom: 8,
+      textTransform: 'uppercase',
+      letterSpacing: 0.3
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13
+    }
+  }, atual.icone), " ", atual.nome), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 6,
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      fontSize: 14.5,
+      lineHeight: 1.3,
+      flex: 1,
+      wordBreak: 'break-word'
+    }
+  }, cliente.nome), /*#__PURE__*/React.createElement("button", {
+    onClick: () => onEditar(cliente),
+    style: {
+      background: 'transparent',
+      border: 'none',
+      color: TEXT_MUTED,
+      fontSize: 14,
+      padding: 2,
+      flexShrink: 0
+    }
+  }, "\u270E")), prazo && prazo.texto && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
+      background: prazo.cor + '1A',
+      border: '1px solid ' + prazo.cor + '55',
+      color: prazo.cor,
+      padding: '7px 10px',
+      borderRadius: 8,
+      fontSize: 12.5,
+      fontWeight: 700,
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14
+    }
+  }, "\u23F0"), " ", prazo.texto), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: TEXT_MUTED,
+      marginBottom: 8,
+      lineHeight: 1.6
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      wordBreak: 'break-word',
+      color: TEXT
+    }
+  }, cliente.produto), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 3,
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '2px 10px'
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "\uD83D\uDCCD ", cliente.cidade || '—', local ? ' (local)' : ''), /*#__PURE__*/React.createElement("span", null, "\uD83D\uDCB0 ", fmtMoeda(cliente.valor_compra))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 2,
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '2px 10px'
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "\uD83D\uDED2 ", formatDate(cliente.data_compra)), cliente.ultimo_contato && /*#__PURE__*/React.createElement("span", null, "\uD83D\uDCAC \xFAlt. ", formatDate(cliente.ultimo_contato)))), cliente.observacoes && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: TEXT_MUTED,
+      fontStyle: 'italic',
+      marginBottom: 8,
+      lineHeight: 1.4,
+      borderLeft: '2px solid ' + BORDER,
+      paddingLeft: 8
+    }
+  }, cliente.observacoes), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 5,
+      marginTop: 8
+    }
+  }, ant && /*#__PURE__*/React.createElement("button", {
+    onClick: () => onMover(cliente, ant.id),
+    style: {
+      background: 'transparent',
+      color: TEXT_MUTED,
+      border: '1px solid ' + BORDER,
+      padding: '8px 9px',
+      borderRadius: 5,
+      fontSize: 13,
+      fontWeight: 700
+    },
+    title: 'Voltar: ' + ant.nome
+  }, "\u2190"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setModalMsg(true),
+    style: {
+      flex: 1,
+      background: '#25D366',
+      color: '#000',
+      border: 'none',
+      padding: '8px 0',
+      borderRadius: 5,
+      fontSize: 12,
+      fontWeight: 700
+    }
+  }, "\uD83D\uDCAC WhatsApp"), prox && /*#__PURE__*/React.createElement("button", {
+    onClick: () => onMover(cliente, prox.id),
+    style: {
+      background: GOLD,
+      color: '#000',
+      border: 'none',
+      padding: '8px 10px',
+      borderRadius: 5,
+      fontSize: 13,
+      fontWeight: 700
+    },
+    title: 'Avançar: ' + prox.nome
+  }, "\u2192")), modalMsg && /*#__PURE__*/React.createElement(ModalMensagem, {
+    cliente: cliente,
+    etapa: atual,
+    isMobile: window.innerWidth <= 640,
+    onEscolher: t => {
+      setModalMsg(false);
+      abrirWhatsapp(cliente, t, onContato);
+    },
+    onFechar: () => setModalMsg(false)
+  }));
 }
-
-function Lista({ clientes, etapas, onEditar, onMover, onContato, onToggleEntregue, isMobile }) {
-const grupos = etapas.map(etapa => ({ etapa, clientes: clientes.filter(c => c.etapa === etapa.id) })).filter(g => g.clientes.length > 0);
-
-if (clientes.length === 0) {
-return <div style={{ padding: '40px 20px', textAlign: 'center', color: TEXT_MUTED, fontSize: 13, background: BG_CARD, border: '1px solid ' + BORDER, borderRadius: 10 }}>Nenhum cliente</div>;
+function Lista({
+  clientes,
+  etapas,
+  onEditar,
+  onMover,
+  onContato,
+  onToggleEntregue,
+  isMobile
+}) {
+  const grupos = etapas.map(etapa => ({
+    etapa,
+    clientes: clientes.filter(c => c.etapa === etapa.id)
+  })).filter(g => g.clientes.length > 0);
+  if (clientes.length === 0) {
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '40px 20px',
+        textAlign: 'center',
+        color: TEXT_MUTED,
+        fontSize: 13,
+        background: BG_CARD,
+        border: '1px solid ' + BORDER,
+        borderRadius: 10
+      }
+    }, "Nenhum cliente");
+  }
+  if (isMobile) {
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 18
+      }
+    }, grupos.map(g => /*#__PURE__*/React.createElement("div", {
+      key: g.etapa.id
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 10,
+        paddingLeft: 4
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 4,
+        height: 18,
+        background: g.etapa.cor,
+        borderRadius: 2
+      }
+    }), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 14
+      }
+    }, g.etapa.icone), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 13,
+        fontWeight: 700,
+        textTransform: 'uppercase',
+        letterSpacing: 0.8,
+        color: g.etapa.cor
+      }
+    }, g.etapa.nome), /*#__PURE__*/React.createElement("span", {
+      style: {
+        background: g.etapa.cor + '22',
+        color: g.etapa.cor,
+        padding: '2px 8px',
+        borderRadius: 10,
+        fontSize: 11,
+        fontWeight: 700
+      }
+    }, g.clientes.length), /*#__PURE__*/React.createElement(InfoEtapa, {
+      texto: g.etapa.objetivo,
+      cor: g.etapa.cor
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8
+      }
+    }, g.clientes.map(c => /*#__PURE__*/React.createElement(CardCliente, {
+      key: c.id,
+      cliente: c,
+      etapas: etapas,
+      onEditar: onEditar,
+      onMover: onMover,
+      onContato: onContato,
+      onToggleEntregue: onToggleEntregue,
+      showEtapa: false
+    }))))));
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 24
+    }
+  }, grupos.map(g => /*#__PURE__*/React.createElement("div", {
+    key: g.etapa.id
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 4,
+      height: 22,
+      background: g.etapa.cor,
+      borderRadius: 2
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 16
+    }
+  }, g.etapa.icone), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14,
+      fontWeight: 700,
+      textTransform: 'uppercase',
+      letterSpacing: 0.8,
+      color: g.etapa.cor
+    }
+  }, g.etapa.nome), /*#__PURE__*/React.createElement("span", {
+    style: {
+      background: g.etapa.cor + '22',
+      color: g.etapa.cor,
+      padding: '3px 10px',
+      borderRadius: 12,
+      fontSize: 12,
+      fontWeight: 700
+    }
+  }, g.clientes.length), /*#__PURE__*/React.createElement(InfoEtapa, {
+    texto: g.etapa.objetivo,
+    cor: g.etapa.cor
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, g.clientes.map(c => /*#__PURE__*/React.createElement(CardCliente, {
+    key: c.id,
+    cliente: c,
+    etapas: etapas,
+    onEditar: onEditar,
+    onMover: onMover,
+    onContato: onContato,
+    onToggleEntregue: onToggleEntregue,
+    showEtapa: false
+  }))))));
 }
-
-if (isMobile) {
-return (
-<div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-{grupos.map(g => (
-<div key={g.etapa.id}>
-<div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, paddingLeft: 4 }}>
-<div style={{ width: 4, height: 18, background: g.etapa.cor, borderRadius: 2 }} />
-<span style={{ fontSize: 14 }}>{g.etapa.icone}</span>
-<span style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8, color: g.etapa.cor }}>{g.etapa.nome}</span>
-<span style={{ background: g.etapa.cor + '22', color: g.etapa.cor, padding: '2px 8px', borderRadius: 10, fontSize: 11, fontWeight: 700 }}>{g.clientes.length}</span>
-<InfoEtapa texto={g.etapa.objetivo} cor={g.etapa.cor} />
-</div>
-<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-{g.clientes.map(c => <CardCliente key={c.id} cliente={c} etapas={etapas} onEditar={onEditar} onMover={onMover} onContato={onContato} onToggleEntregue={onToggleEntregue} showEtapa={false} />)}
-</div>
-</div>
-))}
-</div>
-);
+function ModalCliente({
+  cliente,
+  etapas,
+  onSalvar,
+  onFechar,
+  isMobile
+}) {
+  const [form, setForm] = useState({
+    nome: cliente?.nome || '',
+    whatsapp: cliente?.whatsapp || '',
+    cidade: cliente?.cidade || '',
+    produto: cliente?.produto || '',
+    valor_compra: cliente?.valor_compra ?? '',
+    data_compra: cliente?.data_compra || todayISO(),
+    previsao_entrega: cliente?.previsao_entrega || '',
+    data_entrega: cliente?.data_entrega || '',
+    ultimo_contato: cliente?.ultimo_contato || '',
+    etapa: cliente?.etapa || etapas[0]?.id || 'aguardando_entrega',
+    observacoes: cliente?.observacoes || '',
+    id: cliente?.id
+  });
+  const local = ehCidadeLocal(form.cidade);
+  function submeter() {
+    if (!form.nome || !form.whatsapp || !form.produto) {
+      alert('Preencha nome, WhatsApp e produto');
+      return;
+    }
+    const d = {
+      ...form
+    };
+    if (!d.previsao_entrega) d.previsao_entrega = null;
+    if (!d.data_entrega) d.data_entrega = null;
+    if (!d.ultimo_contato) d.ultimo_contato = null;
+    if (!d.observacoes) d.observacoes = null;
+    if (d.valor_compra === '' || d.valor_compra === null) d.valor_compra = null;else d.valor_compra = Number(d.valor_compra);
+    onSalvar(d);
+  }
+  const ist = {
+    width: '100%',
+    background: BG,
+    border: '1px solid ' + BORDER,
+    borderRadius: 8,
+    padding: '12px 14px',
+    color: TEXT,
+    fontSize: 15,
+    fontFamily: 'inherit'
+  };
+  const lst = {
+    fontSize: 11,
+    color: TEXT_MUTED,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    fontWeight: 600,
+    marginBottom: 6,
+    display: 'block'
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      background: 'rgba(0,0,0,0.85)',
+      zIndex: 100,
+      display: 'flex',
+      alignItems: isMobile ? 'flex-end' : 'center',
+      justifyContent: 'center',
+      padding: isMobile ? 0 : 20,
+      overscrollBehavior: 'contain'
+    },
+    onClick: onFechar
+  }, /*#__PURE__*/React.createElement("div", {
+    onClick: e => e.stopPropagation(),
+    style: {
+      background: BG_CARD,
+      border: '1px solid ' + BORDER,
+      borderRadius: isMobile ? '16px 16px 0 0' : 12,
+      padding: isMobile ? '20px 16px calc(20px + env(safe-area-inset-bottom))' : 24,
+      width: '100%',
+      maxWidth: isMobile ? '100%' : 520,
+      maxHeight: isMobile ? '88vh' : '90vh',
+      overflowY: 'auto',
+      WebkitOverflowScrolling: 'touch',
+      overscrollBehavior: 'contain'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: GOLD,
+      textTransform: 'uppercase',
+      letterSpacing: 2,
+      fontWeight: 700,
+      marginBottom: 4
+    }
+  }, "ETC IMPORTS"), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontSize: 18,
+      fontWeight: 600,
+      margin: 0
+    }
+  }, cliente ? 'Editar cliente' : 'Nova venda')), /*#__PURE__*/React.createElement("button", {
+    onClick: onFechar,
+    style: {
+      background: 'transparent',
+      border: 'none',
+      color: TEXT_MUTED,
+      fontSize: 26,
+      padding: 0,
+      lineHeight: 1,
+      width: 32,
+      height: 32
+    }
+  }, "\xD7")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: lst
+  }, "Nome"), /*#__PURE__*/React.createElement("input", {
+    style: ist,
+    value: form.nome,
+    onChange: e => setForm({
+      ...form,
+      nome: e.target.value
+    }),
+    placeholder: "Jo\xE3o Silva"
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: lst
+  }, "WhatsApp / Telefone"), /*#__PURE__*/React.createElement("input", {
+    type: "tel",
+    style: ist,
+    value: form.whatsapp,
+    onChange: e => setForm({
+      ...form,
+      whatsapp: e.target.value
+    }),
+    placeholder: "(87) 99999-9999"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: lst
+  }, "Cidade"), /*#__PURE__*/React.createElement("input", {
+    style: ist,
+    value: form.cidade,
+    onChange: e => setForm({
+      ...form,
+      cidade: e.target.value
+    }),
+    placeholder: "Petrolina - PE"
+  }))), form.cidade && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: local ? GOLD : '#5B8DEF',
+      background: (local ? GOLD : '#5B8DEF') + '15',
+      borderRadius: 8,
+      padding: '8px 12px',
+      lineHeight: 1.4
+    }
+  }, local ? '📍 Petrolina: o contato de vínculo aparece 2 dias após a compra.' : '📦 Outra cidade: marque "Pedido entregue" no card quando entregar — o contato de vínculo começa a contar a partir daí.'), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: lst
+  }, "Produto"), /*#__PURE__*/React.createElement("input", {
+    style: ist,
+    value: form.produto,
+    onChange: e => setForm({
+      ...form,
+      produto: e.target.value
+    }),
+    placeholder: "Corrente Cartier 3mm"
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: lst
+  }, "Valor da compra (R$)"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    step: "0.01",
+    style: ist,
+    value: form.valor_compra,
+    onChange: e => setForm({
+      ...form,
+      valor_compra: e.target.value
+    }),
+    placeholder: "0,00"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: lst
+  }, "Data compra"), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    style: ist,
+    value: form.data_compra,
+    onChange: e => setForm({
+      ...form,
+      data_compra: e.target.value
+    })
+  }))), !local && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: lst
+  }, "Previs\xE3o de entrega ", form.cidade ? '(cidade de fora)' : ''), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    style: ist,
+    value: form.previsao_entrega,
+    onChange: e => setForm({
+      ...form,
+      previsao_entrega: e.target.value
+    })
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: TEXT_MUTED,
+      marginTop: 4,
+      lineHeight: 1.4
+    }
+  }, "Opcional \u2014 uma estimativa de quando o pedido deve chegar. O contato de v\xEDnculo s\xF3 come\xE7a quando voc\xEA marcar \"Pedido entregue\".")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: lst
+  }, "Etapa atual"), /*#__PURE__*/React.createElement("select", {
+    style: ist,
+    value: form.etapa,
+    onChange: e => setForm({
+      ...form,
+      etapa: e.target.value
+    })
+  }, etapas.map(et => /*#__PURE__*/React.createElement("option", {
+    key: et.id,
+    value: et.id
+  }, et.icone, " ", et.nome)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: lst
+  }, "Observa\xE7\xF5es da atendente"), /*#__PURE__*/React.createElement("textarea", {
+    style: {
+      ...ist,
+      minHeight: 70,
+      resize: 'vertical'
+    },
+    value: form.observacoes,
+    onChange: e => setForm({
+      ...form,
+      observacoes: e.target.value
+    }),
+    placeholder: "Anote prefer\xEAncias, respostas do cliente, etc."
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 10,
+      marginTop: 20
+    }
+  }, cliente && /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      if (confirm('Excluir cliente?')) onSalvar({
+        ...form,
+        _delete: true
+      });
+    },
+    style: {
+      background: 'transparent',
+      border: '1px solid #E24B4A',
+      color: '#E24B4A',
+      padding: '13px 14px',
+      borderRadius: 8,
+      fontSize: 13,
+      fontWeight: 600
+    }
+  }, "Excluir"), /*#__PURE__*/React.createElement("button", {
+    onClick: onFechar,
+    style: {
+      flex: 1,
+      background: 'transparent',
+      border: '1px solid ' + BORDER,
+      color: TEXT,
+      padding: '13px',
+      borderRadius: 8,
+      fontSize: 14,
+      fontWeight: 600
+    }
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    onClick: submeter,
+    style: {
+      flex: 2,
+      background: GOLD,
+      color: '#000',
+      border: 'none',
+      padding: '13px',
+      borderRadius: 8,
+      fontSize: 14,
+      fontWeight: 700
+    }
+  }, cliente ? 'Salvar' : 'Cadastrar'))));
 }
-
-return (
-<div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-{grupos.map(g => (
-<div key={g.etapa.id}>
-<div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-<div style={{ width: 4, height: 22, background: g.etapa.cor, borderRadius: 2 }} />
-<span style={{ fontSize: 16 }}>{g.etapa.icone}</span>
-<span style={{ fontSize: 14, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8, color: g.etapa.cor }}>{g.etapa.nome}</span>
-<span style={{ background: g.etapa.cor + '22', color: g.etapa.cor, padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 700 }}>{g.clientes.length}</span>
-<InfoEtapa texto={g.etapa.objetivo} cor={g.etapa.cor} />
-</div>
-<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-{g.clientes.map(c => <CardCliente key={c.id} cliente={c} etapas={etapas} onEditar={onEditar} onMover={onMover} onContato={onContato} onToggleEntregue={onToggleEntregue} showEtapa={false} />)}
-</div>
-</div>
-))}
-</div>
-);
+function TelaConfig({
+  etapas,
+  onAtualizar,
+  isMobile
+}) {
+  const [editando, setEditando] = useState(null);
+  const [criando, setCriando] = useState(false);
+  async function mover(etapa, dir) {
+    const idx = etapas.findIndex(e => e.id === etapa.id);
+    const n = idx + dir;
+    if (n < 0 || n >= etapas.length) return;
+    const outra = etapas[n];
+    try {
+      await api('etapas', 'PATCH', '?id=eq.' + etapa.id, {
+        ordem: outra.ordem
+      });
+      await api('etapas', 'PATCH', '?id=eq.' + outra.id, {
+        ordem: etapa.ordem
+      });
+      onAtualizar();
+    } catch (e) {
+      alert('Erro: ' + e.message);
+    }
+  }
+  async function remover(etapa) {
+    if (!confirm('Remover a etapa "' + etapa.nome + '"?\n\nClientes nessa etapa precisarão ser movidos manualmente depois.')) return;
+    try {
+      await api('etapas', 'DELETE', '?id=eq.' + etapa.id);
+      onAtualizar();
+    } catch (e) {
+      alert('Erro: ' + e.message);
+    }
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: isMobile ? 16 : 24
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: isMobile ? 'flex-start' : 'center',
+      marginBottom: 16,
+      flexWrap: 'wrap',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontSize: isMobile ? 18 : 22,
+      fontWeight: 600,
+      margin: 0
+    }
+  }, "Etapas do funil"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: TEXT_MUTED,
+      marginTop: 4,
+      lineHeight: 1.5
+    }
+  }, "Edite, reordene, adicione ou remova etapas. Cada etapa tem 2 op\xE7\xF5es de mensagem.")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setCriando(true),
+    style: {
+      background: GOLD,
+      color: '#000',
+      border: 'none',
+      padding: '10px 16px',
+      borderRadius: 8,
+      fontSize: 13,
+      fontWeight: 700,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
+      whiteSpace: 'nowrap'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 16
+    }
+  }, "+"), " Nova etapa")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, etapas.map((etapa, idx) => /*#__PURE__*/React.createElement("div", {
+    key: etapa.id,
+    style: {
+      background: BG_CARD,
+      border: '1px solid ' + BORDER,
+      borderLeft: '4px solid ' + etapa.cor,
+      borderRadius: 10,
+      padding: isMobile ? 12 : 16,
+      display: 'flex',
+      alignItems: 'center',
+      gap: isMobile ? 8 : 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 2,
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => mover(etapa, -1),
+    disabled: idx === 0,
+    style: {
+      background: 'transparent',
+      border: '1px solid ' + BORDER,
+      color: idx === 0 ? TEXT_DIM : TEXT_MUTED,
+      width: 26,
+      height: 20,
+      borderRadius: 4,
+      fontSize: 10,
+      padding: 0
+    }
+  }, "\u25B2"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => mover(etapa, 1),
+    disabled: idx === etapas.length - 1,
+    style: {
+      background: 'transparent',
+      border: '1px solid ' + BORDER,
+      color: idx === etapas.length - 1 ? TEXT_DIM : TEXT_MUTED,
+      width: 26,
+      height: 20,
+      borderRadius: 4,
+      fontSize: 10,
+      padding: 0
+    }
+  }, "\u25BC")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 36,
+      height: 36,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 18,
+      background: etapa.cor + '22',
+      borderRadius: 8,
+      flexShrink: 0
+    }
+  }, etapa.icone), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      fontWeight: 600
+    }
+  }, etapa.nome, etapa.dias_apos_compra != null ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: TEXT_DIM,
+      fontWeight: 400
+    }
+  }, " \xB7 ", etapa.dias_apos_compra, "d") : ''), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: TEXT_MUTED,
+      marginTop: 2,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap'
+    }
+  }, etapa.mensagem_whatsapp ? etapa.mensagem_whatsapp.split('\n')[0].slice(0, 45) : 'Sem mensagem', etapa.mensagem_whatsapp_2 ? ' • +1 opção' : '')), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 6,
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setEditando(etapa),
+    style: {
+      background: 'transparent',
+      border: '1px solid ' + BORDER,
+      color: TEXT,
+      padding: '8px 12px',
+      borderRadius: 6,
+      fontSize: 12,
+      fontWeight: 600
+    }
+  }, "Editar"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => remover(etapa),
+    style: {
+      background: 'transparent',
+      border: '1px solid ' + BORDER,
+      color: '#E24B4A',
+      padding: '8px 10px',
+      borderRadius: 6,
+      fontSize: 14
+    }
+  }, "\xD7"))))), (editando || criando) && /*#__PURE__*/React.createElement(ModalEtapa, {
+    etapa: editando,
+    criando: criando,
+    etapasExistentes: etapas,
+    onSalvar: async d => {
+      try {
+        if (criando) {
+          const o = Math.max(0, ...etapas.map(e => e.ordem)) + 1;
+          await api('etapas', 'POST', '', {
+            ...d,
+            ordem: o
+          });
+        } else {
+          await api('etapas', 'PATCH', '?id=eq.' + editando.id, {
+            ...d,
+            updated_at: new Date().toISOString()
+          });
+        }
+        setEditando(null);
+        setCriando(false);
+        onAtualizar();
+      } catch (e) {
+        alert('Erro: ' + e.message);
+      }
+    },
+    onFechar: () => {
+      setEditando(null);
+      setCriando(false);
+    },
+    isMobile: isMobile
+  }));
 }
-
-function ModalCliente({ cliente, etapas, onSalvar, onFechar, isMobile }) {
-const [form, setForm] = useState({
-nome: cliente?.nome || '', whatsapp: cliente?.whatsapp || '', cidade: cliente?.cidade || '',
-produto: cliente?.produto || '', valor_compra: cliente?.valor_compra ?? '',
-data_compra: cliente?.data_compra || todayISO(), previsao_entrega: cliente?.previsao_entrega || '',
-data_entrega: cliente?.data_entrega || '',
-ultimo_contato: cliente?.ultimo_contato || '',
-etapa: cliente?.etapa || etapas[0]?.id || 'aguardando_entrega',
-observacoes: cliente?.observacoes || '', id: cliente?.id,
-});
-
-const local = ehCidadeLocal(form.cidade);
-
-function submeter() {
-if (!form.nome || !form.whatsapp || !form.produto) { alert('Preencha nome, WhatsApp e produto'); return; }
-const d = { ...form };
-if (!d.previsao_entrega) d.previsao_entrega = null;
-if (!d.data_entrega) d.data_entrega = null;
-if (!d.ultimo_contato) d.ultimo_contato = null;
-if (!d.observacoes) d.observacoes = null;
-if (d.valor_compra === '' || d.valor_compra === null) d.valor_compra = null;
-else d.valor_compra = Number(d.valor_compra);
-onSalvar(d);
+function ModalEtapa({
+  etapa,
+  criando,
+  etapasExistentes,
+  onSalvar,
+  onFechar,
+  isMobile
+}) {
+  const [form, setForm] = useState({
+    id: etapa?.id || '',
+    nome: etapa?.nome || '',
+    icone: etapa?.icone || '📋',
+    cor: etapa?.cor || GOLD,
+    mensagem_whatsapp: etapa?.mensagem_whatsapp || '',
+    mensagem_whatsapp_2: etapa?.mensagem_whatsapp_2 || '',
+    dias_apos_compra: etapa?.dias_apos_compra ?? '',
+    objetivo: etapa?.objetivo || ''
+  });
+  function submeter() {
+    if (!form.nome) {
+      alert('Preencha o nome');
+      return;
+    }
+    const d = {
+      ...form
+    };
+    if (d.dias_apos_compra === '' || d.dias_apos_compra === null) d.dias_apos_compra = null;else d.dias_apos_compra = Number(d.dias_apos_compra);
+    if (!d.mensagem_whatsapp_2) d.mensagem_whatsapp_2 = null;
+    if (!d.objetivo) d.objetivo = null;
+    if (criando && !d.id) {
+      d.id = form.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+      if (etapasExistentes.some(e => e.id === d.id)) d.id = d.id + '_' + Date.now();
+    }
+    onSalvar(d);
+  }
+  const ist = {
+    width: '100%',
+    background: BG,
+    border: '1px solid ' + BORDER,
+    borderRadius: 8,
+    padding: '12px 14px',
+    color: TEXT,
+    fontSize: 15,
+    fontFamily: 'inherit'
+  };
+  const lst = {
+    fontSize: 11,
+    color: TEXT_MUTED,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    fontWeight: 600,
+    marginBottom: 6,
+    display: 'block'
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      background: 'rgba(0,0,0,0.85)',
+      zIndex: 100,
+      display: 'flex',
+      alignItems: isMobile ? 'flex-end' : 'center',
+      justifyContent: 'center',
+      padding: isMobile ? 0 : 20,
+      overscrollBehavior: 'contain'
+    },
+    onClick: onFechar
+  }, /*#__PURE__*/React.createElement("div", {
+    onClick: e => e.stopPropagation(),
+    style: {
+      background: BG_CARD,
+      border: '1px solid ' + BORDER,
+      borderRadius: isMobile ? '16px 16px 0 0' : 12,
+      padding: isMobile ? '20px 16px calc(20px + env(safe-area-inset-bottom))' : 24,
+      width: '100%',
+      maxWidth: isMobile ? '100%' : 560,
+      maxHeight: isMobile ? '88vh' : '90vh',
+      overflowY: 'auto',
+      WebkitOverflowScrolling: 'touch',
+      overscrollBehavior: 'contain'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontSize: 18,
+      fontWeight: 600,
+      margin: 0
+    }
+  }, criando ? 'Nova etapa' : 'Editar etapa'), /*#__PURE__*/React.createElement("button", {
+    onClick: onFechar,
+    style: {
+      background: 'transparent',
+      border: 'none',
+      color: TEXT_MUTED,
+      fontSize: 26,
+      lineHeight: 1,
+      width: 32,
+      height: 32
+    }
+  }, "\xD7")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '2fr 1fr',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: lst
+  }, "Nome da etapa"), /*#__PURE__*/React.createElement("input", {
+    style: ist,
+    value: form.nome,
+    onChange: e => setForm({
+      ...form,
+      nome: e.target.value
+    }),
+    placeholder: "V\xEDnculo p\xF3s-compra"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: lst
+  }, "Dias ap\xF3s compra"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    style: ist,
+    value: form.dias_apos_compra,
+    onChange: e => setForm({
+      ...form,
+      dias_apos_compra: e.target.value
+    }),
+    placeholder: "2"
+  }))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: lst
+  }, "Objetivo (opcional)"), /*#__PURE__*/React.createElement("input", {
+    style: ist,
+    value: form.objetivo,
+    onChange: e => setForm({
+      ...form,
+      objetivo: e.target.value
+    }),
+    placeholder: "Criar v\xEDnculo e refor\xE7ar cuidados"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: lst
+  }, "\xCDcone"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: isMobile ? 'repeat(6, 1fr)' : 'repeat(9, 1fr)',
+      gap: 6
+    }
+  }, ICONES.map(ic => /*#__PURE__*/React.createElement("button", {
+    key: ic,
+    onClick: () => setForm({
+      ...form,
+      icone: ic
+    }),
+    style: {
+      background: form.icone === ic ? GOLD + '33' : BG,
+      border: '1px solid ' + (form.icone === ic ? GOLD : BORDER),
+      borderRadius: 6,
+      padding: '8px 0',
+      fontSize: 18
+    }
+  }, ic)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: lst
+  }, "Cor"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(5, 1fr)',
+      gap: 6
+    }
+  }, CORES.map(c => /*#__PURE__*/React.createElement("button", {
+    key: c.valor,
+    onClick: () => setForm({
+      ...form,
+      cor: c.valor
+    }),
+    style: {
+      background: c.valor,
+      border: form.cor === c.valor ? '2px solid #fff' : '2px solid transparent',
+      borderRadius: 6,
+      padding: '12px 0',
+      color: '#000',
+      fontSize: 10,
+      fontWeight: 700
+    }
+  }, c.nome)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: lst
+  }, "Mensagem WhatsApp \u2014 Op\xE7\xE3o 1"), /*#__PURE__*/React.createElement("textarea", {
+    style: {
+      ...ist,
+      minHeight: 90,
+      resize: 'vertical',
+      lineHeight: 1.5
+    },
+    value: form.mensagem_whatsapp,
+    onChange: e => setForm({
+      ...form,
+      mensagem_whatsapp: e.target.value
+    }),
+    placeholder: "Use {nome} e {produto}"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: lst
+  }, "Mensagem WhatsApp \u2014 Op\xE7\xE3o 2 (opcional)"), /*#__PURE__*/React.createElement("textarea", {
+    style: {
+      ...ist,
+      minHeight: 90,
+      resize: 'vertical',
+      lineHeight: 1.5
+    },
+    value: form.mensagem_whatsapp_2,
+    onChange: e => setForm({
+      ...form,
+      mensagem_whatsapp_2: e.target.value
+    }),
+    placeholder: "Segunda op\xE7\xE3o de mensagem"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: TEXT_MUTED,
+      marginTop: 6,
+      lineHeight: 1.6
+    }
+  }, "\uD83D\uDCCC Vari\xE1veis: ", /*#__PURE__*/React.createElement("code", {
+    style: {
+      background: BG,
+      padding: '2px 6px',
+      borderRadius: 4,
+      color: GOLD
+    }
+  }, '{nome}'), " ", /*#__PURE__*/React.createElement("code", {
+    style: {
+      background: BG,
+      padding: '2px 6px',
+      borderRadius: 4,
+      color: GOLD,
+      marginLeft: 4
+    }
+  }, '{produto}')))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 10,
+      marginTop: 20
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onFechar,
+    style: {
+      flex: 1,
+      background: 'transparent',
+      border: '1px solid ' + BORDER,
+      color: TEXT,
+      padding: '13px',
+      borderRadius: 8,
+      fontSize: 14,
+      fontWeight: 600
+    }
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    onClick: submeter,
+    style: {
+      flex: 2,
+      background: GOLD,
+      color: '#000',
+      border: 'none',
+      padding: '13px',
+      borderRadius: 8,
+      fontSize: 14,
+      fontWeight: 700
+    }
+  }, criando ? 'Criar' : 'Salvar'))));
 }
-
-const ist = { width: '100%', background: BG, border: '1px solid ' + BORDER, borderRadius: 8, padding: '12px 14px', color: TEXT, fontSize: 15, fontFamily: 'inherit' };
-const lst = { fontSize: 11, color: TEXT_MUTED, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600, marginBottom: 6, display: 'block' };
-
-return (
-<div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 100, display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', padding: isMobile ? 0 : 20, overscrollBehavior: 'contain' }} onClick={onFechar}>
-<div onClick={e => e.stopPropagation()} style={{ background: BG_CARD, border: '1px solid ' + BORDER, borderRadius: isMobile ? '16px 16px 0 0' : 12, padding: isMobile ? '20px 16px calc(20px + env(safe-area-inset-bottom))' : 24, width: '100%', maxWidth: isMobile ? '100%' : 520, maxHeight: isMobile ? '88vh' : '90vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
-<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-<div>
-<div style={{ fontSize: 10, color: GOLD, textTransform: 'uppercase', letterSpacing: 2, fontWeight: 700, marginBottom: 4 }}>ETC IMPORTS</div>
-<h2 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>{cliente ? 'Editar cliente' : 'Nova venda'}</h2>
-</div>
-<button onClick={onFechar} style={{ background: 'transparent', border: 'none', color: TEXT_MUTED, fontSize: 26, padding: 0, lineHeight: 1, width: 32, height: 32 }}>×</button>
-</div>
-<div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-<div><label style={lst}>Nome</label><input style={ist} value={form.nome} onChange={e => setForm({ ...form, nome: e.target.value })} placeholder="João Silva" /></div>
-<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-<div><label style={lst}>WhatsApp / Telefone</label><input type="tel" style={ist} value={form.whatsapp} onChange={e => setForm({ ...form, whatsapp: e.target.value })} placeholder="(87) 99999-9999" /></div>
-<div><label style={lst}>Cidade</label><input style={ist} value={form.cidade} onChange={e => setForm({ ...form, cidade: e.target.value })} placeholder="Petrolina - PE" /></div>
-</div>
-{form.cidade && (
-<div style={{ fontSize: 11.5, color: local ? GOLD : '#5B8DEF', background: (local ? GOLD : '#5B8DEF') + '15', borderRadius: 8, padding: '8px 12px', lineHeight: 1.4 }}>
-{local ? '📍 Petrolina: o contato de vínculo aparece 2 dias após a compra.' : '📦 Outra cidade: marque "Pedido entregue" no card quando entregar — o contato de vínculo começa a contar a partir daí.'}
-</div>
-)}
-<div><label style={lst}>Produto</label><input style={ist} value={form.produto} onChange={e => setForm({ ...form, produto: e.target.value })} placeholder="Corrente Cartier 3mm" /></div>
-<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-<div><label style={lst}>Valor da compra (R$)</label><input type="number" step="0.01" style={ist} value={form.valor_compra} onChange={e => setForm({ ...form, valor_compra: e.target.value })} placeholder="0,00" /></div>
-<div><label style={lst}>Data compra</label><input type="date" style={ist} value={form.data_compra} onChange={e => setForm({ ...form, data_compra: e.target.value })} /></div>
-</div>
-{!local && (
-<div><label style={lst}>Previsão de entrega {form.cidade ? '(cidade de fora)' : ''}</label><input type="date" style={ist} value={form.previsao_entrega} onChange={e => setForm({ ...form, previsao_entrega: e.target.value })} /><div style={{ fontSize: 11, color: TEXT_MUTED, marginTop: 4, lineHeight: 1.4 }}>Opcional — uma estimativa de quando o pedido deve chegar. O contato de vínculo só começa quando você marcar "Pedido entregue".</div></div>
-)}
-<div><label style={lst}>Etapa atual</label><select style={ist} value={form.etapa} onChange={e => setForm({ ...form, etapa: e.target.value })}>{etapas.map(et => <option key={et.id} value={et.id}>{et.icone} {et.nome}</option>)}</select></div>
-<div><label style={lst}>Observações da atendente</label><textarea style={{ ...ist, minHeight: 70, resize: 'vertical' }} value={form.observacoes} onChange={e => setForm({ ...form, observacoes: e.target.value })} placeholder="Anote preferências, respostas do cliente, etc." /></div>
-</div>
-<div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-{cliente && <button onClick={() => { if (confirm('Excluir cliente?')) onSalvar({ ...form, _delete: true }); }} style={{ background: 'transparent', border: '1px solid #E24B4A', color: '#E24B4A', padding: '13px 14px', borderRadius: 8, fontSize: 13, fontWeight: 600 }}>Excluir</button>}
-<button onClick={onFechar} style={{ flex: 1, background: 'transparent', border: '1px solid ' + BORDER, color: TEXT, padding: '13px', borderRadius: 8, fontSize: 14, fontWeight: 600 }}>Cancelar</button>
-<button onClick={submeter} style={{ flex: 2, background: GOLD, color: '#000', border: 'none', padding: '13px', borderRadius: 8, fontSize: 14, fontWeight: 700 }}>{cliente ? 'Salvar' : 'Cadastrar'}</button>
-</div>
-</div>
-</div>
-);
+function Loading() {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'center',
+      padding: 80,
+      color: TEXT_MUTED
+    }
+  }, "Carregando...");
 }
-
-function TelaConfig({ etapas, onAtualizar, isMobile }) {
-const [editando, setEditando] = useState(null);
-const [criando, setCriando] = useState(false);
-
-async function mover(etapa, dir) {
-const idx = etapas.findIndex(e => e.id === etapa.id);
-const n = idx + dir;
-if (n < 0 || n >= etapas.length) return;
-const outra = etapas[n];
-try {
-await api('etapas', 'PATCH', '?id=eq.' + etapa.id, { ordem: outra.ordem });
-await api('etapas', 'PATCH', '?id=eq.' + outra.id, { ordem: etapa.ordem });
-onAtualizar();
-} catch (e) { alert('Erro: ' + e.message); }
+function EstadoVazio({
+  onAdicionar
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: BG_CARD,
+      border: '1px dashed ' + BORDER,
+      borderRadius: 12,
+      padding: '50px 20px',
+      textAlign: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 40,
+      marginBottom: 14
+    }
+  }, "\uD83D\uDC51"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      fontWeight: 600,
+      marginBottom: 6
+    }
+  }, "Nenhuma venda ainda"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: TEXT_MUTED,
+      marginBottom: 20
+    }
+  }, "As vendas do ERP aparecem aqui automaticamente"), /*#__PURE__*/React.createElement("button", {
+    onClick: onAdicionar,
+    style: {
+      background: GOLD,
+      color: '#000',
+      border: 'none',
+      padding: '12px 24px',
+      borderRadius: 8,
+      fontSize: 14,
+      fontWeight: 700
+    }
+  }, "Cadastrar manual"));
 }
-
-async function remover(etapa) {
-if (!confirm('Remover a etapa "' + etapa.nome + '"?\n\nClientes nessa etapa precisarão ser movidos manualmente depois.')) return;
-try { await api('etapas', 'DELETE', '?id=eq.' + etapa.id); onAtualizar(); }
-catch (e) { alert('Erro: ' + e.message); }
-}
-
-return (
-<div style={{ marginTop: isMobile ? 16 : 24 }}>
-<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
-<div>
-<h2 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 600, margin: 0 }}>Etapas do funil</h2>
-<p style={{ fontSize: 12, color: TEXT_MUTED, marginTop: 4, lineHeight: 1.5 }}>Edite, reordene, adicione ou remova etapas. Cada etapa tem 2 opções de mensagem.</p>
-</div>
-<button onClick={() => setCriando(true)} style={{ background: GOLD, color: '#000', border: 'none', padding: '10px 16px', borderRadius: 8, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}><span style={{ fontSize: 16 }}>+</span> Nova etapa</button>
-</div>
-<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-{etapas.map((etapa, idx) => (
-<div key={etapa.id} style={{ background: BG_CARD, border: '1px solid ' + BORDER, borderLeft: '4px solid ' + etapa.cor, borderRadius: 10, padding: isMobile ? 12 : 16, display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 12 }}>
-<div style={{ display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0 }}>
-<button onClick={() => mover(etapa, -1)} disabled={idx === 0} style={{ background: 'transparent', border: '1px solid ' + BORDER, color: idx === 0 ? TEXT_DIM : TEXT_MUTED, width: 26, height: 20, borderRadius: 4, fontSize: 10, padding: 0 }}>▲</button>
-<button onClick={() => mover(etapa, 1)} disabled={idx === etapas.length - 1} style={{ background: 'transparent', border: '1px solid ' + BORDER, color: idx === etapas.length - 1 ? TEXT_DIM : TEXT_MUTED, width: 26, height: 20, borderRadius: 4, fontSize: 10, padding: 0 }}>▼</button>
-</div>
-<div style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, background: etapa.cor + '22', borderRadius: 8, flexShrink: 0 }}>{etapa.icone}</div>
-<div style={{ flex: 1, minWidth: 0 }}>
-<div style={{ fontSize: 14, fontWeight: 600 }}>{etapa.nome}{etapa.dias_apos_compra != null ? <span style={{ color: TEXT_DIM, fontWeight: 400 }}> · {etapa.dias_apos_compra}d</span> : ''}</div>
-<div style={{ fontSize: 11, color: TEXT_MUTED, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{etapa.mensagem_whatsapp ? etapa.mensagem_whatsapp.split('\n')[0].slice(0, 45) : 'Sem mensagem'}{etapa.mensagem_whatsapp_2 ? ' • +1 opção' : ''}</div>
-</div>
-<div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-<button onClick={() => setEditando(etapa)} style={{ background: 'transparent', border: '1px solid ' + BORDER, color: TEXT, padding: '8px 12px', borderRadius: 6, fontSize: 12, fontWeight: 600 }}>Editar</button>
-<button onClick={() => remover(etapa)} style={{ background: 'transparent', border: '1px solid ' + BORDER, color: '#E24B4A', padding: '8px 10px', borderRadius: 6, fontSize: 14 }}>×</button>
-</div>
-</div>
-))}
-</div>
-{(editando || criando) && (
-<ModalEtapa etapa={editando} criando={criando} etapasExistentes={etapas} onSalvar={async d => {
-try {
-if (criando) {
-const o = Math.max(0, ...etapas.map(e => e.ordem)) + 1;
-await api('etapas', 'POST', '', { ...d, ordem: o });
-} else { await api('etapas', 'PATCH', '?id=eq.' + editando.id, { ...d, updated_at: new Date().toISOString() }); }
-setEditando(null); setCriando(false); onAtualizar();
-} catch (e) { alert('Erro: ' + e.message); }
-}} onFechar={() => { setEditando(null); setCriando(false); }} isMobile={isMobile} />
-)}
-</div>
-);
-}
-
-function ModalEtapa({ etapa, criando, etapasExistentes, onSalvar, onFechar, isMobile }) {
-const [form, setForm] = useState({
-id: etapa?.id || '', nome: etapa?.nome || '', icone: etapa?.icone || '📋',
-cor: etapa?.cor || GOLD, mensagem_whatsapp: etapa?.mensagem_whatsapp || '',
-mensagem_whatsapp_2: etapa?.mensagem_whatsapp_2 || '',
-dias_apos_compra: etapa?.dias_apos_compra ?? '', objetivo: etapa?.objetivo || '',
-});
-
-function submeter() {
-if (!form.nome) { alert('Preencha o nome'); return; }
-const d = { ...form };
-if (d.dias_apos_compra === '' || d.dias_apos_compra === null) d.dias_apos_compra = null;
-else d.dias_apos_compra = Number(d.dias_apos_compra);
-if (!d.mensagem_whatsapp_2) d.mensagem_whatsapp_2 = null;
-if (!d.objetivo) d.objetivo = null;
-if (criando && !d.id) {
-d.id = form.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
-if (etapasExistentes.some(e => e.id === d.id)) d.id = d.id + '_' + Date.now();
-}
-onSalvar(d);
-}
-
-const ist = { width: '100%', background: BG, border: '1px solid ' + BORDER, borderRadius: 8, padding: '12px 14px', color: TEXT, fontSize: 15, fontFamily: 'inherit' };
-const lst = { fontSize: 11, color: TEXT_MUTED, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600, marginBottom: 6, display: 'block' };
-
-return (
-<div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 100, display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', padding: isMobile ? 0 : 20, overscrollBehavior: 'contain' }} onClick={onFechar}>
-<div onClick={e => e.stopPropagation()} style={{ background: BG_CARD, border: '1px solid ' + BORDER, borderRadius: isMobile ? '16px 16px 0 0' : 12, padding: isMobile ? '20px 16px calc(20px + env(safe-area-inset-bottom))' : 24, width: '100%', maxWidth: isMobile ? '100%' : 560, maxHeight: isMobile ? '88vh' : '90vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
-<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-<h2 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>{criando ? 'Nova etapa' : 'Editar etapa'}</h2>
-<button onClick={onFechar} style={{ background: 'transparent', border: 'none', color: TEXT_MUTED, fontSize: 26, lineHeight: 1, width: 32, height: 32 }}>×</button>
-</div>
-<div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-<div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
-<div><label style={lst}>Nome da etapa</label><input style={ist} value={form.nome} onChange={e => setForm({ ...form, nome: e.target.value })} placeholder="Vínculo pós-compra" /></div>
-<div><label style={lst}>Dias após compra</label><input type="number" style={ist} value={form.dias_apos_compra} onChange={e => setForm({ ...form, dias_apos_compra: e.target.value })} placeholder="2" /></div>
-</div>
-<div><label style={lst}>Objetivo (opcional)</label><input style={ist} value={form.objetivo} onChange={e => setForm({ ...form, objetivo: e.target.value })} placeholder="Criar vínculo e reforçar cuidados" /></div>
-<div>
-<label style={lst}>Ícone</label>
-<div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(6, 1fr)' : 'repeat(9, 1fr)', gap: 6 }}>
-{ICONES.map(ic => <button key={ic} onClick={() => setForm({ ...form, icone: ic })} style={{ background: form.icone === ic ? GOLD + '33' : BG, border: '1px solid ' + (form.icone === ic ? GOLD : BORDER), borderRadius: 6, padding: '8px 0', fontSize: 18 }}>{ic}</button>)}
-</div>
-</div>
-<div>
-<label style={lst}>Cor</label>
-<div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(5, 1fr)', gap: 6 }}>
-{CORES.map(c => <button key={c.valor} onClick={() => setForm({ ...form, cor: c.valor })} style={{ background: c.valor, border: form.cor === c.valor ? '2px solid #fff' : '2px solid transparent', borderRadius: 6, padding: '12px 0', color: '#000', fontSize: 10, fontWeight: 700 }}>{c.nome}</button>)}
-</div>
-</div>
-<div>
-<label style={lst}>Mensagem WhatsApp — Opção 1</label>
-<textarea style={{ ...ist, minHeight: 90, resize: 'vertical', lineHeight: 1.5 }} value={form.mensagem_whatsapp} onChange={e => setForm({ ...form, mensagem_whatsapp: e.target.value })} placeholder="Use {nome} e {produto}" />
-</div>
-<div>
-<label style={lst}>Mensagem WhatsApp — Opção 2 (opcional)</label>
-<textarea style={{ ...ist, minHeight: 90, resize: 'vertical', lineHeight: 1.5 }} value={form.mensagem_whatsapp_2} onChange={e => setForm({ ...form, mensagem_whatsapp_2: e.target.value })} placeholder="Segunda opção de mensagem" />
-<div style={{ fontSize: 11, color: TEXT_MUTED, marginTop: 6, lineHeight: 1.6 }}>
-📌 Variáveis: <code style={{ background: BG, padding: '2px 6px', borderRadius: 4, color: GOLD }}>{'{nome}'}</code> <code style={{ background: BG, padding: '2px 6px', borderRadius: 4, color: GOLD, marginLeft: 4 }}>{'{produto}'}</code>
-</div>
-</div>
-</div>
-<div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-<button onClick={onFechar} style={{ flex: 1, background: 'transparent', border: '1px solid ' + BORDER, color: TEXT, padding: '13px', borderRadius: 8, fontSize: 14, fontWeight: 600 }}>Cancelar</button>
-<button onClick={submeter} style={{ flex: 2, background: GOLD, color: '#000', border: 'none', padding: '13px', borderRadius: 8, fontSize: 14, fontWeight: 700 }}>{criando ? 'Criar' : 'Salvar'}</button>
-</div>
-</div>
-</div>
-);
-}
-
-function Loading() { return <div style={{ display: 'flex', justifyContent: 'center', padding: 80, color: TEXT_MUTED }}>Carregando...</div>; }
-
-function EstadoVazio({ onAdicionar }) {
-return (
-<div style={{ background: BG_CARD, border: '1px dashed ' + BORDER, borderRadius: 12, padding: '50px 20px', textAlign: 'center' }}>
-<div style={{ fontSize: 40, marginBottom: 14 }}>👑</div>
-<div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>Nenhuma venda ainda</div>
-<div style={{ fontSize: 13, color: TEXT_MUTED, marginBottom: 20 }}>As vendas do ERP aparecem aqui automaticamente</div>
-<button onClick={onAdicionar} style={{ background: GOLD, color: '#000', border: 'none', padding: '12px 24px', borderRadius: 8, fontSize: 14, fontWeight: 700 }}>Cadastrar manual</button>
-</div>
-);
-}
-
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/React.createElement(App, null));
 </script>
 </body>
 </html>
