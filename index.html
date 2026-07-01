@@ -167,8 +167,29 @@ function calcProximoContato(cliente, etapas) {
   const atual = etapas[idx];
   if (!atual) return null;
 
-  // Aguardando entrega: sem contador, esperando entregar
+  // Aguardando entrega: se houver previsão de entrega (cliente de fora), mostra a contagem
+  // regressiva até a data prevista. Sem previsão, apenas aguarda.
   if (atual.id === 'aguardando_entrega') {
+    if (cliente.previsao_entrega) {
+      const d = diasEntre(cliente.previsao_entrega);
+      if (d !== null) {
+        if (d < 0) return {
+          cor: VERMELHO,
+          texto: 'Entrega prevista · atrasada ' + Math.abs(d) + 'd',
+          prazoISO: cliente.previsao_entrega
+        };
+        if (d === 0) return {
+          cor: LARANJA,
+          texto: 'Entrega prevista · chega HOJE',
+          prazoISO: cliente.previsao_entrega
+        };
+        return {
+          cor: GOLD,
+          texto: 'Entrega prevista · em ' + d + 'd',
+          prazoISO: cliente.previsao_entrega
+        };
+      }
+    }
     return {
       cor: TEXT_MUTED,
       texto: 'Aguardando entrega',
@@ -303,9 +324,11 @@ function App() {
       etapa: novaEtapa,
       updated_at: new Date().toISOString()
     };
-    // Ao entrar em "Pedido entregue", registra a data de entrega (início da contagem do vínculo),
-    // caso ainda não tenha sido registrada.
-    if (novaEtapa === 'pedido_entregue' && !cliente.data_entrega) {
+    // Ao entrar em "Pedido entregue" (ou qualquer etapa posterior), registra a data de entrega
+    // se ainda não houver — é o marco que inicia a contagem do vínculo (2 dias).
+    // Etapas a partir da ordem 2 (pedido_entregue em diante) sempre garantem a data de entrega.
+    const etapasPosEntrega = ['pedido_entregue', 'vinculo', 'prova_social', 'venda_1', 'venda_2', 'concluido'];
+    if (etapasPosEntrega.indexOf(novaEtapa) !== -1 && !cliente.data_entrega) {
       patch.data_entrega = todayISO();
     }
     setClientes(p => p.map(c => c.id === cliente.id ? {
