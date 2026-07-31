@@ -296,6 +296,20 @@ function App() {
   }
   async function salvarCliente(dados) {
     try {
+      if (!dados._delete) {
+        // Regra: telefone é o identificador único do cliente (últimos 8 dígitos)
+        const chaveTel = t => String(t || '').replace(/\D/g, '').slice(-8);
+        const ch = chaveTel(dados.whatsapp);
+        if (ch.length === 8) {
+          const existente = clientes.find(c => c.id !== dados.id && chaveTel(c.whatsapp) === ch);
+          if (existente) {
+            alert('Cliente já existe no banco de dados: ' + (existente.nome || 'sem nome') + '.\n\nNão será criado um cadastro duplicado. Abrindo o cadastro existente para você registrar a nova venda nele.');
+            setModalCliente(null);
+            setClienteEditando(existente);
+            return;
+          }
+        }
+      }
       if (dados._delete) {
         await api('clientes_posvenda', 'DELETE', '?id=eq.' + dados.id);
       } else if (dados.id) {
@@ -316,7 +330,11 @@ function App() {
       setModalCliente(null);
       setClienteEditando(null);
     } catch (e) {
-      alert('Erro: ' + e.message);
+      const m = String(e && e.message || '');
+      const amigavel = (m.indexOf('23505') !== -1 || m.indexOf('uniq_posvenda_telefone') !== -1 || m.indexOf('duplicate key') !== -1)
+        ? 'Cliente já existe no banco de dados com esse telefone.\nRegistre a nova venda no cadastro existente.'
+        : m;
+      alert('Erro: ' + amigavel);
     }
   }
   async function moverEtapa(cliente, novaEtapa) {
